@@ -107,5 +107,149 @@ async def generate_proposal(data: ClientIntake):
         raise HTTPException(status_code=500, detail=f"Database operational failure: {str(db_error)}")
     except Exception as general_error:
         raise HTTPException(status_code=500, detail=f"System execution bottleneck: {str(general_error)}")
+
+
+#request schemas for updates
+class ProposalFinalize(BaseModel):
+    final_price: float
+    signature_base64: Optional[str] = None
+    status: str 
+
+class StatusUpdate(BaseModel):
+    status: str
+
+
+#endpoint 1 : Client portal lookup + tracking
+@app.get("/api/proposals/{proposal_hash}")
+async def get_client_proposal(proposal_hash: str):
+    db_path = "database.db"
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    #locate proposal & merge with client fields
+    query = '''
+        SELECT p.*, c.client_name, c.company_name, c.industry, c.budget, c.client_status
+        FROM proposals p
+        JOIN clients c ON p.client_id = c.client_id
+        WHERE p.proposal_hash = ?
+    '''
+    cursor.execute(query,(proposal_hash,))
+    record = cursor.fetchone()
+
+    if not record:
+        conn.close()
+        raise HTTPException(status_code=404 , detail="Proposal link is invalid or has expired")
+
+    
+    #dynamic tracking 
+    record_dict = dict(record)
+    if record_dict["client_status"] == "Proposal generated":
+        cursor.execute('''
+            UPDATE clients 
+            SET client_status = 'Proposal viewed' 
+            WHERE client_id = ?
+        ''', (record_dict["client_id"],))
+        conn.commit()
+        record_dict["client_status"] = 'Proposal viewed'
+
+    conn.close()
+
+    return {
+        "proposal_id": record_dict["proposal_id"],
+        "client_id": record_dict["client_id"],
+        "client_name": record_dict["client_name"],
+        "company_name": record_dict["company_name"],
+        "industry": record_dict["industry"],
+        "client_status": record_dict["client_status"],
+        "audit_data": json.loads(record_dict["visibility_gaps"]), 
+        "competitor_benchmarks": record_dict["competitor_benchmarks"],
+        "recommended_services": json.dumps(record_dict["recommended_services"])
+    }
+
+
+
+#endpoint 2  - digital signature
+@app.post("/api/proposals/{proposal_hash}/finalize")
+async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
+    if payload.status not in ["Proposal signed","Proposal declined"]:
+        raise HTTPException(status_code=400, detail="Invalid closing status provided.")
+
+    db_path = "database.db"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+
+    #find matching proposal record
+    cursor.execute("SELECT client_id FROM proposals WHERE proposal_hash = ?", (proposal_hash,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Proposal mismatch.")
         
+    client_id = row[0]
+    
+    # 1. Update the signature and price  in proposals table
+    cursor.execute('''
+        UPDATE proposals 
+        SET final_price = ?, signature_data = ? 
+        WHERE proposal_hash = ?
+    ''', (payload.final_price, payload.signature_base64, proposal_hash))
+    
+    # 2. Synch client status for sales dashboard
+    cursor.execute('''
+        UPDATE clients 
+        SET client_status = ? 
+        WHERE client_id = ?
+    ''', (payload.status, client_id))
+    
+    conn.commit()
+    conn.close()
+    return {"status": "Success", "message": f"Proposal successfully finalized as {payload.status}."}
+
+#endpoint 3 : sales dashboard logs
+@app.get("/api/admin/proposals")
+async def get_all_audits():
+    db_path = "database.db"
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    query = '''
+        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash
+        FROM clients c
+        LEFT JOIN proposals p ON c.client_id = p.client_id
+        ORDER BY c.client_id DESC
+    '''
+    cursor.execute(query)
+    records = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return records
+
+
+#endpoint 4 : manual override by sales member
+@app.patch("/api/admin/clients/{client_id}/status")
+async def update_client_status_manually(client_id: int, payload: StatusUpdate):
+    """
+    Allows the sales rep to manually adjust the client lead lifecycle state.
+    """
+    valid_statuses = ['Proposal generated', 'Proposal sent', 'Proposal viewed', 'Proposal signed', 'Proposal declined']
+    if payload.status not in valid_statuses:
+        raise HTTPException(status_code=400, detail="Requested status override matches no recognized template validation fields.")
         
+    db_path = "database.db"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT client_id FROM clients WHERE client_id = ?", (client_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Target client not located.")
+        
+    cursor.execute("UPDATE clients SET client_status = ? WHERE client_id = ?", (payload.status, client_id))
+    conn.commit()
+    conn.close()
+    return {"status": "Success", "message": f"Client status manually set to '{payload.status}' successfully."}
+
+
+   
