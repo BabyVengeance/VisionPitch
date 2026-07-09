@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-transition">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Apex VisionPitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        .theme-transition,
+        .theme-transition * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, stroke 0.3s ease, box-shadow 0.3s ease !important;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-white dark:bg-black flex flex-col items-center justify-center h-screen text-zinc-900 dark:text-zinc-100 theme-transition relative">
+
+    <!-- theme toggle button -->
+    <div class="absolute top-6 right-6">
+        <button id="themeToggle"
+            class="p-2.5 rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 transition-all"
+            aria-label="Toggle Theme">
+            <svg id="sunIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                </path>
+            </svg>
+            <svg id="moonIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!--Logo-->
+    <div class="mb-6 flex justify-center">
+        <img src="../Assets/high quality white logo.png" alt="Apex Digital Logo"
+            class="h-28 w-auto block dark:hidden object-contain">
+        <img src="../Assets/APEX DIGITAL (1).png" alt="Apex Digital Logo"
+            class="h-28 w-auto hidden dark:block object-contain">
+    </div>
+
+
+
+    <!-- Login card itself -->
+    <div
+        class="bg-white dark:bg-zinc-950 p-8 rounded-xl shadow-md dark:shadow-[0_8px_30px_rgb(0,0,0,0.8)] w-full max-w-md border border-zinc-200 dark:border-zinc-900">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold tracking-tight text-black dark:text-white uppercase">
+                Apex Vision-Pitch
+            </h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-3 font-medium">Sign in to your sales workspace</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="username"
+                    class="block text-sm font-semibold tracking-wide text-zinc-700 dark:text-zinc-300 uppercase">Username</label>
+                <input type="text" id="username"
+                    class="mt-1.5 block w-full px-4 py-3 bg-white dark:bg-black border border-zinc-300 dark:border-zinc-800 rounded-lg text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all font-medium"
+                    placeholder="admin" required>
+            </div>
+
+            <div>
+                <label for="password"
+                    class="block text-sm font-semibold tracking-wide text-zinc-700 dark:text-zinc-300 uppercase">Password</label>
+                <input type="password" id="password"
+                    class="mt-1.5 block w-full px-4 py-3 bg-white dark:bg-black border border-zinc-300 dark:border-zinc-800 rounded-lg text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all font-medium"
+                    placeholder="••••••••" required>
+            </div>
+
+            <button type="submit"
+                class="w-full flex justify-center py-3.5 px-4 border border-zinc-900 dark:border-zinc-100 rounded-lg shadow-sm text-sm font-bold tracking-wider text-white dark:text-black bg-black dark:bg-white hover:bg-zinc-900 dark:hover:bg-zinc-100 hover:opacity-90 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black dark:focus:ring-white transition-all uppercase">
+                Authenticate Securely
+            </button>
+        </form>
+    </div>
+
+    <!-- theme Toggler  -->
+    <script>
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+
+        function updateIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+
+        updateIcons();
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            updateIcons();
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+
+</html>
