@@ -76,10 +76,10 @@ async def generate_proposal(data: ClientIntake):
         audit_raw_json = json.dumps({
             "online_sentiment_review": ai_payload.get("online_sentiment_review"),
             "competitor_analysis": ai_payload.get("competitor_analysis"),
-            "visibility_gaps": ai_payload.get("visibility_gaps")
+            "visibility_gaps": ai_payload.get("visibility_gaps"),
+            "competitor_benchmarks": ai_payload.get("competitor_benchmarks")
         })
         
-        competitor_benchmarks = ai_payload.get("competitor_benchmarks")
         recommended_services = json.dumps(ai_payload.get("suggested_modules"))
         
         # Generate a secure random hash for the proposal link
@@ -87,9 +87,9 @@ async def generate_proposal(data: ClientIntake):
         
         # Insert dynamic audit results into the proposals table linked to the client record
         cursor.execute('''
-            INSERT INTO proposals (client_id, proposal_hash, visibility_gaps, competitor_benchmarks, recommended_services, final_price)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (client_id, proposal_hash, audit_raw_json, competitor_benchmarks, recommended_services, data.budget))
+            INSERT INTO proposals (client_id, proposal_hash, audit_raw_json, recommended_services, final_price)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (client_id, proposal_hash, audit_raw_json, recommended_services, data.budget))
         
         conn.commit()
         conn.close()
@@ -155,6 +155,8 @@ async def get_client_proposal(proposal_hash: str):
 
     conn.close()
 
+    audit_data = json.loads(record_dict["audit_raw_json"])
+
     return {
         "proposal_id": record_dict["proposal_id"],
         "client_id": record_dict["client_id"],
@@ -162,9 +164,13 @@ async def get_client_proposal(proposal_hash: str):
         "company_name": record_dict["company_name"],
         "industry": record_dict["industry"],
         "client_status": record_dict["client_status"],
-        "audit_data": json.loads(record_dict["visibility_gaps"]), 
-        "competitor_benchmarks": record_dict["competitor_benchmarks"],
-        "recommended_services": json.dumps(record_dict["recommended_services"])
+        "audit_data": {
+            "online_sentiment_review": audit_data.get("online_sentiment_review"),
+            "competitor_analysis": audit_data.get("competitor_analysis"),
+            "visibility_gaps": audit_data.get("visibility_gaps")
+        }, 
+        "competitor_benchmarks": audit_data.get("competitor_benchmarks"),
+        "recommended_services": json.loads(record_dict["recommended_services"])
     }
 
 
