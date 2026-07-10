@@ -57,10 +57,16 @@
 
     <!--Logo-->
     <div class="mb-6 flex justify-center">
-        <img src="../Assets/high quality white logo.png" alt="Apex Digital Logo"
-            class="h-28 w-auto block dark:hidden object-contain">
-        <img src="../Assets/APEX DIGITAL (1).png" alt="Apex Digital Logo"
-            class="h-28 w-auto hidden dark:block object-contain">
+        <div class="relative h-28 w-28 flex items-center justify-center">
+            <!-- Black Logo (Visible in Light Mode) -->
+            <img src="../Assets/Black logo.png" alt="Apex Digital Logo"
+                class="absolute h-28 w-28 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
+                loading="eager">
+            <!-- White Logo (Visible in Dark Mode) -->
+            <img src="../Assets/White logo.png" alt="Apex Digital Logo"
+                class="absolute h-28 w-28 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
+                loading="eager">
+        </div>
     </div>
 
 

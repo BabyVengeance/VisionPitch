@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-transition">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Apex VisionPitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        .theme-transition,
+        .theme-transition * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+        /* Custom scrollbar for premium look */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.25);
+            border-radius: 9999px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.45);
+        }
+    </style>
+</head>
+
+
+<body class="bg-white dark:bg-black text-black dark:text-zinc-100 flex h-screen overflow-hidden theme-transition">
+    <aside class="w-64 bg-white dark:bg-black border-r border-zinc-200 dark:border-zinc-900 flex flex-col">
+        <div
+            class="h-24 flex items-center justify-center px-6 border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black transition-colors duration-200">
+            <div class="relative h-16 w-16 flex items-center justify-center">
+                <!-- Black Logo (Visible in Light Mode) -->
+                <img src="../Assets/Black logo.png" alt="Apex Digital Logo"
+                    class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
+                    loading="eager">
+                <!-- White Logo (Visible in Dark Mode) -->
+                <img src="../Assets/White logo.png" alt="Apex Digital Logo"
+                    class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
+                    loading="eager">
+            </div>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="#"
+                class="flex items-center gap-3 px-3 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                    </path>
+                </svg>
+                Dashboard Home
+            </a>
+            <a href="#" id="newClientBtn"
+                class="flex items-center gap-3 px-3 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Client Intake
+            </a>
+            <a href="#"
+                class="flex items-center gap-3 px-3 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white rounded-lg transition-colors font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                View Proposals
+            </a>
+        </nav>
+        <div class="p-4 border-t border-zinc-200 dark:border-zinc-900">
+            <button id="logoutBtn"
+                class="w-full text-left px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors font-medium">Log
+                Out</button>
+        </div>
+    </aside>
+    <main class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white dark:bg-black">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Overview</h1>
+            <div class="flex items-center gap-3">
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle"
+                    class="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:outline-none transition-all"
+                    aria-label="Toggle Theme">
+                    <svg id="sunIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                        </path>
+                    </svg>
+                    <svg id="moonIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
+                </button>
+                <button
+                    class="bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black border border-black dark:border-white px-4 py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all shadow-sm active:scale-[0.98]">
+                    + Generate Interactive Proposal
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
+                    Generated</p>
+                <p class="text-3xl font-extrabold text-black dark:text-white mt-2">142</p>
+            </div>
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">Opened
+                </p>
+                <p class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">89</p>
+            </div>
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
+                    Unopened</p>
+                <p class="text-3xl font-extrabold text-yellow-600 dark:text-yellow-500 mt-2">53</p>
+            </div>
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-b-4 border-b-emerald-500">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">Closed
+                    / Signed</p>
+                <p class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">41</p>
+            </div>
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
+                    Declined</p>
+                <p class="text-3xl font-extrabold text-red-600 dark:text-red-400 mt-2">12</p>
+            </div>
+        </div>
+
+        <div
+            class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900">
+                <h3 class="text-lg font-bold tracking-tight text-black dark:text-white">Recent Proposals</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr
+                            class="bg-zinc-100/55 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-900">
+                            <th class="px-6 py-3.5 font-semibold">Client Name</th>
+                            <th class="px-6 py-3.5 font-semibold">Industry</th>
+                            <th class="px-6 py-3.5 font-semibold">Value</th>
+                            <th class="px-6 py-3.5 font-semibold">Status</th>
+                            <th class="px-6 py-3.5 font-semibold">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-zinc-200 dark:divide-zinc-900">
+                        <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
+                            <td class="px-6 py-4 text-black dark:text-white font-bold">TechFlow Dynamics</td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Software Development</td>
+                            <td class="px-6 py-4 text-zinc-800 dark:text-zinc-200 font-semibold">R12,500</td>
+                            <td class="px-6 py-4"><span
+                                    class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">Proposal
+                                    signed</span></td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Today, 10:42 AM</td>
+                        </tr>
+                        <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
+                            <td class="px-6 py-4 text-black dark:text-white font-bold">Aura Coffee Roasters</td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">E-Commerce</td>
+                            <td class="px-6 py-4 text-zinc-800 dark:text-zinc-200 font-semibold">R4,200</td>
+                            <td class="px-6 py-4"><span
+                                    class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">Proposal
+                                    viewed</span></td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Yesterday</td>
+                        </tr>
+                        <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
+                            <td class="px-6 py-4 text-black dark:text-white font-bold">Nexus Logistics</td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Supply Chain</td>
+                            <td class="px-6 py-4 text-zinc-800 dark:text-zinc-200 font-semibold">R28,000</td>
+                            <td class="px-6 py-4"><span
+                                    class="px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-200 dark:bg-zinc-800 text-zinc-850 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">Generated</span>
+                            </td>
+                            <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Oct 12, 2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
