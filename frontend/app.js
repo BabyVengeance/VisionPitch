@@ -9,14 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
         });
     }
-
     // Dashboard logic for index.html
     const newClientBtn = document.getElementById('newClientBtn');
     if (newClientBtn) {
         newClientBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log("Opening New Client Intake Form...");
-            alert("This will open the intake form to query the Gemini API.");
+            alert("This will open the intake form to query the AI.");
         });
     }
     const logoutBtn = document.getElementById('logoutBtn');
