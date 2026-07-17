@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="theme-transition">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,25 +30,31 @@
         .theme-transition * {
             transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease, box-shadow 0.2s ease !important;
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(156, 163, 175, 0.25);
             border-radius: 9999px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(156, 163, 175, 0.45);
         }
+
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
         }
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 18px;
@@ -57,48 +64,70 @@
             margin-top: -6px;
             transition: transform 0.1s ease;
         }
+
         input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.1);
         }
+
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
             height: 6px;
             cursor: pointer;
             border-radius: 9999px;
         }
-        
+
         .light input[type=range]::-webkit-slider-thumb {
             background: #000000;
             border: 1px solid #d4d4d8;
         }
+
         .dark input[type=range]::-webkit-slider-thumb {
             background: #ffffff;
             border: 1px solid #27272a;
         }
-        
+
         .light input[type=range]::-webkit-slider-runnable-track {
             background: #e4e4e7;
         }
+
         .dark input[type=range]::-webkit-slider-runnable-track {
             background: #27272a;
         }
     </style>
 </head>
-<body class="bg-white dark:bg-black text-black dark:text-zinc-100 min-h-screen flex flex-col font-sans antialiased theme-transition custom-scrollbar">
-    <nav class="bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-50 transition-colors duration-200">
+
+<body
+    class="bg-white dark:bg-black text-black dark:text-zinc-100 min-h-screen flex flex-col font-sans antialiased theme-transition custom-scrollbar">
+    <nav
+        class="bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-50 transition-colors duration-200">
         <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="relative h-10 w-10 flex items-center justify-center">
-                    <img src="../Assets/Black logo.png" alt="Apex Logo" class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0">
-                    <img src="../Assets/White logo.png" alt="Apex Logo" class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100">
+                    <img src="../Assets/White logo.png" alt="Apex Logo"
+                        class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0">
+                    <img src="../Assets/Black logo.png" alt="Apex Logo"
+                        class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100">
                 </div>
-                <span class="text-lg font-extrabold tracking-wider uppercase text-black dark:text-white">Apex VisionPitch</span>
+                <span class="text-lg font-extrabold tracking-wider uppercase text-black dark:text-white">Apex
+                    VisionPitch</span>
             </div>
             <div class="flex items-center gap-4">
-                <span id="clientBadge" class="hidden sm:inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400"></span>
-                <button id="themeToggle" class="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
-                    <svg id="sunIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
-                    <svg id="moonIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <span id="clientBadge"
+                    class="hidden sm:inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400"></span>
+                <button id="themeToggle"
+                    class="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
+                    <svg id="sunIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                        </path>
+                    </svg>
+                    <svg id="moonIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z">
+                        </path>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -109,45 +138,68 @@
             <div class="h-10 bg-zinc-200 dark:bg-zinc-800 rounded-md w-3/4 mx-auto"></div>
             <div class="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-1/2 mx-auto"></div>
             <div class="space-y-4 pt-12">
-                <div class="h-48 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                <div
+                    class="h-48 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900">
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
-                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
-                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                    <div
+                        class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900">
+                    </div>
+                    <div
+                        class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900">
+                    </div>
+                    <div
+                        class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900">
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="errorState" class="hidden text-center py-16 space-y-6">
-            <div class="w-16 h-16 bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto border border-red-200 dark:border-red-900">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <div
+                class="w-16 h-16 bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto border border-red-200 dark:border-red-900">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
             </div>
-            <h2 id="errorMessage" class="text-2xl font-bold tracking-tight text-black dark:text-white uppercase">Link Invalid or Expired</h2>
-            <p class="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">The interactive proposal link you followed is invalid, has expired, or is missing parameters. Please contact your Apex account executive.</p>
+            <h2 id="errorMessage" class="text-2xl font-bold tracking-tight text-black dark:text-white uppercase">Link
+                Invalid or Expired</h2>
+            <p class="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">The interactive proposal link you followed is
+                invalid, has expired, or is missing parameters. Please contact your Apex account executive.</p>
         </div>
 
         <div id="proposalContent" class="hidden space-y-12">
             <section class="text-center space-y-3">
-                <h1 id="proposalTitle" class="text-4xl font-extrabold tracking-tight text-black dark:text-white uppercase"></h1>
+                <h1 id="proposalTitle"
+                    class="text-4xl font-extrabold tracking-tight text-black dark:text-white uppercase"></h1>
                 <p id="proposalSubtitle" class="text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto"></p>
             </section>
 
-            <section class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm space-y-8">
+            <section
+                class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm space-y-8">
                 <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
-                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Market Visibility Audit</h2>
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Market Visibility
+                        Audit</h2>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <div>
-                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Online Sentiment Analysis</span>
-                            <p id="sentimentText" class="mt-2 text-zinc-650 dark:text-zinc-300 leading-relaxed font-medium"></p>
+                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Online Sentiment
+                                Analysis</span>
+                            <p id="sentimentText"
+                                class="mt-2 text-zinc-650 dark:text-zinc-300 leading-relaxed font-medium"></p>
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Competitor Benchmarks</span>
-                            <div class="mt-2 p-5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg">
-                                <p id="benchmarkText" class="text-zinc-750 dark:text-zinc-300 leading-relaxed font-medium"></p>
+                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Competitor
+                                Benchmarks</span>
+                            <div
+                                class="mt-2 p-5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg">
+                                <p id="benchmarkText"
+                                    class="text-zinc-750 dark:text-zinc-300 leading-relaxed font-medium"></p>
                             </div>
                         </div>
                     </div>
@@ -156,52 +208,69 @@
 
             <section class="space-y-6">
                 <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
-                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Competitor Strategies</h2>
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Competitor
+                        Strategies</h2>
                 </div>
                 <div id="competitorGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
             </section>
 
             <section class="space-y-6">
                 <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
-                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Optimization Opportunities</h2>
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Optimization
+                        Opportunities</h2>
                 </div>
                 <div id="gapsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </section>
 
             <section class="space-y-6">
                 <div class="flex justify-between items-end border-b border-zinc-200 dark:border-zinc-900 pb-4">
-                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Custom Solutions & Scoping</h2>
-                    <span class="text-xs font-bold text-zinc-400 uppercase">Adjust multipliers for velocity and volume</span>
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Custom Solutions &
+                        Scoping</h2>
+                    <span class="text-xs font-bold text-zinc-400 uppercase">Adjust multipliers for velocity and
+                        volume</span>
                 </div>
                 <div id="servicesContainer" class="space-y-4"></div>
-                
+
                 <div class="mt-8 flex justify-end">
-                    <div class="bg-zinc-50 dark:bg-zinc-950 rounded-xl p-6 border border-zinc-200 dark:border-zinc-900 shadow-sm min-w-[320px] text-right space-y-4">
+                    <div
+                        class="bg-zinc-50 dark:bg-zinc-950 rounded-xl p-6 border border-zinc-200 dark:border-zinc-900 shadow-sm min-w-[320px] text-right space-y-4">
                         <div>
-                            <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Target Ingestion Budget</span>
-                            <span id="targetBudgetDisplay" class="text-2xl font-bold text-zinc-500 dark:text-zinc-400 block mt-1"></span>
+                            <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Target
+                                Ingestion Budget</span>
+                            <span id="targetBudgetDisplay"
+                                class="text-2xl font-bold text-zinc-500 dark:text-zinc-400 block mt-1"></span>
                         </div>
                         <div class="pt-4 border-t border-zinc-200 dark:border-zinc-900">
-                            <span class="text-black dark:text-white text-xs font-extrabold uppercase tracking-wider block">Custom Investment Total</span>
-                            <span id="grandTotal" class="text-4xl font-extrabold text-black dark:text-white mt-1 block"></span>
+                            <span
+                                class="text-black dark:text-white text-xs font-extrabold uppercase tracking-wider block">Custom
+                                Investment Total</span>
+                            <span id="grandTotal"
+                                class="text-4xl font-extrabold text-black dark:text-white mt-1 block"></span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm text-center space-y-6 max-w-2xl mx-auto">
+            <section
+                class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm text-center space-y-6 max-w-2xl mx-auto">
                 <div class="space-y-2">
-                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Project Authorization</h2>
-                    <p class="text-zinc-500 dark:text-zinc-400 text-sm">Draw your signature in the workspace below to authorize the customized scope.</p>
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Project
+                        Authorization</h2>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-sm">Draw your signature in the workspace below to
+                        authorize the customized scope.</p>
                 </div>
                 <div class="max-w-md mx-auto">
-                    <div class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg overflow-hidden relative">
-                        <canvas id="signaturePad" class="w-full h-44 cursor-crosshair touch-none bg-white dark:bg-black"></canvas>
+                    <div
+                        class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg overflow-hidden relative">
+                        <canvas id="signaturePad"
+                            class="w-full h-44 cursor-crosshair touch-none bg-white dark:bg-black"></canvas>
                         <div class="absolute bottom-3 right-3">
-                            <button id="clearCanvas" class="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-bold text-zinc-600 dark:text-zinc-400 px-3.5 py-1.5 rounded border border-zinc-200 dark:border-zinc-800 transition-colors uppercase">Clear</button>
+                            <button id="clearCanvas"
+                                class="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-bold text-zinc-600 dark:text-zinc-400 px-3.5 py-1.5 rounded border border-zinc-200 dark:border-zinc-800 transition-colors uppercase">Clear</button>
                         </div>
                     </div>
-                    <button id="approveBtn" class="w-full mt-6 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-bold py-4 px-8 rounded-lg shadow-sm transition-all hover:opacity-90 active:scale-[0.98] border border-black dark:border-white flex justify-center items-center gap-2.5 uppercase tracking-wider text-sm">
+                    <button id="approveBtn"
+                        class="w-full mt-6 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-bold py-4 px-8 rounded-lg shadow-sm transition-all hover:opacity-90 active:scale-[0.98] border border-black dark:border-white flex justify-center items-center gap-2.5 uppercase tracking-wider text-sm">
                         Authorize & Submit Scope
                     </button>
                 </div>
@@ -288,7 +357,7 @@
                     data.audit_data.competitor_analysis.forEach(comp => {
                         const col = document.createElement('div');
                         col.className = "bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-3";
-                        
+
                         const name = document.createElement('h3');
                         name.className = "text-lg font-bold text-black dark:text-white uppercase";
                         name.textContent = comp.name;
@@ -311,7 +380,7 @@
                     data.audit_data.visibility_gaps.forEach(gap => {
                         const item = document.createElement('div');
                         item.className = "flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg";
-                        
+
                         const icon = document.createElement('div');
                         icon.className = "w-5 h-5 text-black dark:text-white flex-shrink-0";
                         icon.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
@@ -356,7 +425,7 @@
 
                     const headerDiv = document.createElement('div');
                     headerDiv.className = "flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
-                    
+
                     const titleDiv = document.createElement('div');
                     const t = document.createElement('h3');
                     t.className = "text-lg font-bold text-black dark:text-white uppercase";
@@ -404,11 +473,11 @@
                     timelineSlider.max = "3";
                     timelineSlider.value = "2";
                     timelineSlider.className = "bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
-                    
+
                     const timelineLabels = document.createElement('div');
                     timelineLabels.className = "flex justify-between text-[10px] font-bold text-zinc-400 uppercase";
                     timelineLabels.innerHTML = `<span>Rush (2w)</span><span>Standard</span><span>Extended (8w)</span>`;
-                    
+
                     timelineDiv.appendChild(tlLabel);
                     timelineDiv.appendChild(timelineSlider);
                     timelineDiv.appendChild(timelineLabels);
@@ -591,21 +660,21 @@
                         status: 'Proposal signed'
                     })
                 })
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error("Failed to save digital authorization signature.");
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    alert("Proposal Authorized Successfully!");
-                    disableInteractiveState();
-                })
-                .catch(err => {
-                    alert(err.message);
-                    approveBtn.disabled = false;
-                    approveBtn.textContent = "Authorize & Submit Scope";
-                });
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error("Failed to save digital authorization signature.");
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        alert("Proposal Authorized Successfully!");
+                        disableInteractiveState();
+                    })
+                    .catch(err => {
+                        alert(err.message);
+                        approveBtn.disabled = false;
+                        approveBtn.textContent = "Authorize & Submit Scope";
+                    });
             });
 
             function disableInteractiveState() {
@@ -619,4 +688,5 @@
         });
     </script>
 </body>
+
 </html>
