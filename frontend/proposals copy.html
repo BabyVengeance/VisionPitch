@@ -56,27 +56,21 @@
             cursor: pointer;
             margin-top: -6px;
             transition: transform 0.1s ease;
+            background: #000000;
+            border: 1px solid #d4d4d8;
         }
         input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.1);
+        }
+        .dark input[type=range]::-webkit-slider-thumb {
+            background: #ffffff;
+            border: 1px solid #27272a;
         }
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
             height: 6px;
             cursor: pointer;
             border-radius: 9999px;
-        }
-        
-        .light input[type=range]::-webkit-slider-thumb {
-            background: #000000;
-            border: 1px solid #d4d4d8;
-        }
-        .dark input[type=range]::-webkit-slider-thumb {
-            background: #ffffff;
-            border: 1px solid #27272a;
-        }
-        
-        .light input[type=range]::-webkit-slider-runnable-track {
             background: #e4e4e7;
         }
         .dark input[type=range]::-webkit-slider-runnable-track {
@@ -119,14 +113,42 @@
                     <div class="space-y-6">
                         <div>
                             <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Online Sentiment Analysis</span>
-                            <p class="mt-2 text-zinc-650 dark:text-zinc-300 leading-relaxed font-medium">TechFlow Dynamics maintains a highly positive reputation for their engineering quality, but has an extremely weak digital search presence. Their primary brand query drives users to outdated directories rather than a modern, fast acquisition funnel. Public reviews indicate strong client retention but no proactive social proof pipelines.</p>
+                            <p class="mt-2 text-zinc-600 dark:text-zinc-300 leading-relaxed font-medium">TechFlow Dynamics maintains a highly positive reputation for their engineering quality, but has an extremely weak digital search presence. Their primary brand query drives users to outdated directories rather than a modern, fast acquisition funnel. Public reviews indicate strong client retention but no proactive social proof pipelines.</p>
                         </div>
-                    </div>
-                    <div class="space-y-6">
                         <div>
                             <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Competitor Benchmarks</span>
-                            <div class="mt-2 p-5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg">
-                                <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium">Competitors average 72% higher organic lead capture efficiency. Restructuring visibility gaps reduces cost-per-acquisition (CPA) by 40% and raises visibility parameters from 32% to 95% within 90 days.</p>
+                            <p class="mt-2 text-zinc-650 dark:text-zinc-300 leading-relaxed font-medium">Competitors average 72% higher organic lead capture efficiency. Restructuring visibility gaps reduces cost-per-acquisition (CPA) by 40% and raises visibility parameters from 32% to 95% within 90 days.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6 flex flex-col justify-center">
+                        <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase mb-2">Visibility Performance Index</span>
+                        <div class="p-6 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg space-y-6">
+                            <div>
+                                <div class="flex justify-between text-xs font-bold uppercase mb-1.5">
+                                    <span class="text-zinc-500 dark:text-zinc-400">Current Technical SEO</span>
+                                    <span class="text-red-500 dark:text-red-400">32%</span>
+                                </div>
+                                <div class="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5">
+                                    <div class="bg-red-500 dark:bg-red-600 h-2.5 rounded-full" style="width: 32%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold uppercase mb-1.5">
+                                    <span class="text-zinc-500 dark:text-zinc-400">Competitor Average</span>
+                                    <span class="text-zinc-700 dark:text-zinc-300">68%</span>
+                                </div>
+                                <div class="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5">
+                                    <div class="bg-zinc-500 dark:bg-zinc-650 h-2.5 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold uppercase mb-1.5">
+                                    <span class="text-zinc-500 dark:text-zinc-400">Projected Goal (90 Days)</span>
+                                    <span class="text-emerald-500 dark:text-emerald-400">95%</span>
+                                </div>
+                                <div class="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2.5">
+                                    <div class="bg-emerald-500 dark:bg-emerald-600 h-2.5 rounded-full" style="width: 95%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
