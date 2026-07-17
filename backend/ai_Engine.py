@@ -5,7 +5,7 @@ from pydantic import BaseModel , Field
 from typing import List
 
 
-#1 Defining the structural output models to match requirements
+
 class Competitor(BaseModel):
     name: str = Field(description = "Name of the competitor company")
     platform_leveraged: str = Field(description="Digital channel they are using effectively(e.g. active funnels , website ,SEO engine , social automation)")
@@ -25,7 +25,7 @@ class AuditResult(BaseModel):
     suggested_modules: List[ServiceModule] = Field(description="Modular service line-items configured specifically to fix their visibility gaps")
    
 
-#2. defining core processing function
+
 def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, social: str, budget: float) -> dict:
 
    api_key = os.getenv("GEMINI_API_KEY","YOUR_GEMINI_API_KEY")
@@ -44,8 +44,7 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
     Evaluate their online sentiment, profile 3 competitors, itemize visibility gaps, and deliver tailored service modules mapping directly to their budget limits.
     """
   
-   #request JSON structure to match schema
-   response - client.models.generate_content(
+   response = client.models.generate_content(
     model='gemini-2.5-flash',
     contents=prompt,
     config={
@@ -54,6 +53,4 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
     }
    )
 
-   #returning parsed data directly as a python directory
-   return json.loads(response.text)  
-    
+   return json.loads(response.text)
