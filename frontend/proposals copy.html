@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-transition">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Proposal | Apex VisionPitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        .theme-transition,
+        .theme-transition * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.25);
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.45);
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -6px;
+            transition: transform 0.1s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            border-radius: 9999px;
+        }
+        
+        .light input[type=range]::-webkit-slider-thumb {
+            background: #000000;
+            border: 1px solid #d4d4d8;
+        }
+        .dark input[type=range]::-webkit-slider-thumb {
+            background: #ffffff;
+            border: 1px solid #27272a;
+        }
+        
+        .light input[type=range]::-webkit-slider-runnable-track {
+            background: #e4e4e7;
+        }
+        .dark input[type=range]::-webkit-slider-runnable-track {
+            background: #27272a;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-black text-black dark:text-zinc-100 min-h-screen flex flex-col font-sans antialiased theme-transition custom-scrollbar">
+    <nav class="bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-50 transition-colors duration-200">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="relative h-10 w-10 flex items-center justify-center">
+                    <img src="../Assets/Black logo.png" alt="Apex Logo" class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0">
+                    <img src="../Assets/White logo.png" alt="Apex Logo" class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100">
+                </div>
+                <span class="text-lg font-extrabold tracking-wider uppercase text-black dark:text-white">Apex VisionPitch</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="clientBadge" class="hidden sm:inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400"></span>
+                <button id="themeToggle" class="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
+                    <svg id="sunIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.364l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path></svg>
+                    <svg id="moonIcon" class="hidden w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-12 space-y-12">
+        <div id="loader" class="space-y-8 py-12 animate-pulse">
+            <div class="h-10 bg-zinc-200 dark:bg-zinc-800 rounded-md w-3/4 mx-auto"></div>
+            <div class="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-1/2 mx-auto"></div>
+            <div class="space-y-4 pt-12">
+                <div class="h-48 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                    <div class="h-32 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-900"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorState" class="hidden text-center py-16 space-y-6">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-950/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto border border-red-200 dark:border-red-900">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h2 id="errorMessage" class="text-2xl font-bold tracking-tight text-black dark:text-white uppercase">Link Invalid or Expired</h2>
+            <p class="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">The interactive proposal link you followed is invalid, has expired, or is missing parameters. Please contact your Apex account executive.</p>
+        </div>
+
+        <div id="proposalContent" class="hidden space-y-12">
+            <section class="text-center space-y-3">
+                <h1 id="proposalTitle" class="text-4xl font-extrabold tracking-tight text-black dark:text-white uppercase"></h1>
+                <p id="proposalSubtitle" class="text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto"></p>
+            </section>
+
+            <section class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm space-y-8">
+                <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Market Visibility Audit</h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Online Sentiment Analysis</span>
+                            <p id="sentimentText" class="mt-2 text-zinc-650 dark:text-zinc-300 leading-relaxed font-medium"></p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <span class="text-xs font-bold tracking-wider text-zinc-400 uppercase">Competitor Benchmarks</span>
+                            <div class="mt-2 p-5 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg">
+                                <p id="benchmarkText" class="text-zinc-750 dark:text-zinc-300 leading-relaxed font-medium"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="space-y-6">
+                <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Competitor Strategies</h2>
+                </div>
+                <div id="competitorGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </section>
+
+            <section class="space-y-6">
+                <div class="border-b border-zinc-200 dark:border-zinc-900 pb-4">
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Optimization Opportunities</h2>
+                </div>
+                <div id="gapsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+
+            <section class="space-y-6">
+                <div class="flex justify-between items-end border-b border-zinc-200 dark:border-zinc-900 pb-4">
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Custom Solutions & Scoping</h2>
+                    <span class="text-xs font-bold text-zinc-400 uppercase">Adjust multipliers for velocity and volume</span>
+                </div>
+                <div id="servicesContainer" class="space-y-4"></div>
+                
+                <div class="mt-8 flex justify-end">
+                    <div class="bg-zinc-50 dark:bg-zinc-950 rounded-xl p-6 border border-zinc-200 dark:border-zinc-900 shadow-sm min-w-[320px] text-right space-y-4">
+                        <div>
+                            <span class="text-zinc-400 text-xs font-bold uppercase tracking-wider block">Target Ingestion Budget</span>
+                            <span id="targetBudgetDisplay" class="text-2xl font-bold text-zinc-500 dark:text-zinc-400 block mt-1"></span>
+                        </div>
+                        <div class="pt-4 border-t border-zinc-200 dark:border-zinc-900">
+                            <span class="text-black dark:text-white text-xs font-extrabold uppercase tracking-wider block">Custom Investment Total</span>
+                            <span id="grandTotal" class="text-4xl font-extrabold text-black dark:text-white mt-1 block"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 p-8 shadow-sm text-center space-y-6 max-w-2xl mx-auto">
+                <div class="space-y-2">
+                    <h2 class="text-xl font-bold tracking-tight text-black dark:text-white uppercase">Project Authorization</h2>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-sm">Draw your signature in the workspace below to authorize the customized scope.</p>
+                </div>
+                <div class="max-w-md mx-auto">
+                    <div class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg overflow-hidden relative">
+                        <canvas id="signaturePad" class="w-full h-44 cursor-crosshair touch-none bg-white dark:bg-black"></canvas>
+                        <div class="absolute bottom-3 right-3">
+                            <button id="clearCanvas" class="bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-bold text-zinc-600 dark:text-zinc-400 px-3.5 py-1.5 rounded border border-zinc-200 dark:border-zinc-800 transition-colors uppercase">Clear</button>
+                        </div>
+                    </div>
+                    <button id="approveBtn" class="w-full mt-6 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black font-bold py-4 px-8 rounded-lg shadow-sm transition-all hover:opacity-90 active:scale-[0.98] border border-black dark:border-white flex justify-center items-center gap-2.5 uppercase tracking-wider text-sm">
+                        Authorize & Submit Scope
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="py-8 border-t border-zinc-200 dark:border-zinc-900 text-center">
+        <p class="text-xs text-zinc-400 font-medium">© 2026 Apex Digital SA. Powered by VisionPitch Dynamic Engine.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('themeToggle');
+            const sunIcon = document.getElementById('sunIcon');
+            const moonIcon = document.getElementById('moonIcon');
+
+            function updateIcons() {
+                if (document.documentElement.classList.contains('dark')) {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+            }
+
+            updateIcons();
+
+            themeToggleBtn.addEventListener('click', () => {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.theme = 'light';
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.theme = 'dark';
+                }
+                updateIcons();
+            });
+
+            const loader = document.getElementById('loader');
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+            const proposalContent = document.getElementById('proposalContent');
+
+            const clientBadge = document.getElementById('clientBadge');
+            const proposalTitle = document.getElementById('proposalTitle');
+            const proposalSubtitle = document.getElementById('proposalSubtitle');
+            const sentimentText = document.getElementById('sentimentText');
+            const benchmarkText = document.getElementById('benchmarkText');
+            const competitorGrid = document.getElementById('competitorGrid');
+            const gapsContainer = document.getElementById('gapsContainer');
+            const targetBudgetDisplay = document.getElementById('targetBudgetDisplay');
+
+            let baseServices = [];
+            let activeMultipliers = {};
+
+            const data = {
+                client_id: 1,
+                client_name: "TechFlow Dynamics",
+                company_name: "TechFlow Dynamics",
+                industry: "Software Development",
+                client_status: "Proposal sent",
+                budget: 15000,
+                audit_data: {
+                    online_sentiment_review: "TechFlow Dynamics maintains a highly positive reputation for their engineering quality, but has an extremely weak digital search presence. Their primary brand query drives users to outdated directories rather than a modern, fast acquisition funnel. Public reviews indicate strong client retention but no proactive social proof pipelines.",
+                    competitor_analysis: [
+                        {
+                            name: "QuantumScale Solutions",
+                            platform_leveraged: "Google Ads & Technical SEO",
+                            revenue_advantage: "Captures 45% of high-intent search traffic by running targeted campaigns mapping directly to customized multi-page case studies, closing local enterprise contracts automatically."
+                        },
+                        {
+                            name: "ApexFlow Technologies",
+                            platform_leveraged: "Active Web Funnels",
+                            revenue_advantage: "Leverages speed-optimized booking systems to convert cold search visitors into paid assessment calls, reducing their sales rep intake labor by 30 hours per month."
+                        },
+                        {
+                            name: "Vector Dev Group",
+                            platform_leveraged: "LinkedIn Automation & Social Funnels",
+                            revenue_advantage: "Runs automated outbound content flows that drop prospective leads directly into a high-converting web presentation page, capturing 15 new client calls weekly."
+                        }
+                    ],
+                    visibility_gaps: [
+                        "Lack of a secure, mobile-responsive client-facing portal, causing friction during onboarding.",
+                        "Zero Google Core Web Vitals optimization, resulting in search indexing penalties.",
+                        "Absence of structured case study landing funnels, leading to low conversion on paid traffic.",
+                        "Missing dynamic interactive quote systems, leaving clients guessing about pricing models."
+                    ]
+                },
+                competitor_benchmarks: "Competitors average 72% higher organic lead capture efficiency. Restructuring visibility gaps reduces cost-per-acquisition (CPA) by 40% and raises visibility parameters from 32% to 95% within 90 days.",
+                recommended_services: [
+                    {
+                        service_name: "Frontend Redevelopment",
+                        description: "Modernizing the core interface for maximum conversion rate optimization.",
+                        base_hours: 40,
+                        estimated_cost: 6000.0
+                    },
+                    {
+                        service_name: "Technical SEO Overhaul",
+                        description: "Deep architectural fixes to align with Google Core Vitals.",
+                        base_hours: 20,
+                        estimated_cost: 3000.0
+                    },
+                    {
+                        service_name: "Interactive Client Onboarding Portal",
+                        description: "Building a secure dashboard to reduce intake friction.",
+                        base_hours: 30,
+                        estimated_cost: 4500.0
+                    }
+                ]
+            };
+
+            clientBadge.textContent = data.company_name;
+            clientBadge.classList.remove('hidden');
+            proposalTitle.textContent = `Tailored Strategy Matrix`;
+            proposalSubtitle.textContent = `Prepared for ${data.company_name} | ${data.industry} Industry`;
+            sentimentText.textContent = data.audit_data.online_sentiment_review;
+            benchmarkText.textContent = data.competitor_benchmarks;
+
+            competitorGrid.innerHTML = '';
+            data.audit_data.competitor_analysis.forEach(comp => {
+                const col = document.createElement('div');
+                col.className = "bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-3";
+                
+                const name = document.createElement('h3');
+                name.className = "text-lg font-bold text-black dark:text-white uppercase";
+                name.textContent = comp.name;
+
+                const channelLabel = document.createElement('span');
+                channelLabel.className = "inline-block px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-700 dark:text-zinc-400";
+                channelLabel.textContent = comp.platform_leveraged;
+
+                const details = document.createElement('p');
+                details.className = "text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium";
+                details.textContent = comp.revenue_advantage;
+
+                col.appendChild(name);
+                col.appendChild(channelLabel);
+                col.appendChild(details);
+                competitorGrid.appendChild(col);
+            });
+
+            gapsContainer.innerHTML = '';
+            data.audit_data.visibility_gaps.forEach(gap => {
+                const item = document.createElement('div');
+                item.className = "flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg";
+                
+                const icon = document.createElement('div');
+                icon.className = "w-5 h-5 text-black dark:text-white flex-shrink-0";
+                icon.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+
+                const txt = document.createElement('span');
+                txt.className = "text-sm text-zinc-700 dark:text-zinc-300 font-bold";
+                txt.textContent = gap;
+
+                item.appendChild(icon);
+                item.appendChild(txt);
+                gapsContainer.appendChild(item);
+            });
+
+            targetBudgetDisplay.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(data.budget);
+
+            baseServices = data.recommended_services;
+            renderServices();
+
+            loader.classList.add('hidden');
+            proposalContent.classList.remove('hidden');
+
+            const servicesContainer = document.getElementById('servicesContainer');
+            const grandTotal = document.getElementById('grandTotal');
+
+            function renderServices() {
+                servicesContainer.innerHTML = '';
+                baseServices.forEach((service, index) => {
+                    activeMultipliers[index] = { timeline: 1.0, scope: 1.0 };
+
+                    const card = document.createElement('div');
+                    card.className = "bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl p-6 space-y-6 shadow-sm";
+
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = "flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
+                    
+                    const titleDiv = document.createElement('div');
+                    const t = document.createElement('h3');
+                    t.className = "text-lg font-bold text-black dark:text-white uppercase";
+                    t.textContent = service.service_name;
+                    const d = document.createElement('p');
+                    d.className = "text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium";
+                    d.textContent = service.description;
+                    titleDiv.appendChild(t);
+                    titleDiv.appendChild(d);
+
+                    const priceLabelDiv = document.createElement('div');
+                    priceLabelDiv.className = "text-left md:text-right min-w-[150px]";
+                    const pl = document.createElement('span');
+                    pl.className = "text-xs font-bold text-zinc-400 uppercase block";
+                    pl.textContent = "Service Cost";
+                    const pv = document.createElement('span');
+                    pv.id = `priceVal_${index}`;
+                    pv.className = "text-2xl font-extrabold text-black dark:text-white block mt-1";
+                    priceLabelDiv.appendChild(pl);
+                    priceLabelDiv.appendChild(pv);
+
+                    headerDiv.appendChild(titleDiv);
+                    headerDiv.appendChild(priceLabelDiv);
+
+                    const controlsDiv = document.createElement('div');
+                    controlsDiv.className = "grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-zinc-200 dark:border-zinc-900";
+
+                    const timelineDiv = document.createElement('div');
+                    timelineDiv.className = "space-y-3";
+                    const tlLabel = document.createElement('div');
+                    tlLabel.className = "flex justify-between items-center";
+                    const tlt = document.createElement('span');
+                    tlt.className = "text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase";
+                    tlt.textContent = "Timeline Speed";
+                    const tlv = document.createElement('span');
+                    tlv.id = `timelineVal_${index}`;
+                    tlv.className = "text-xs font-extrabold text-black dark:text-white uppercase";
+                    tlv.textContent = "Standard (4 Weeks)";
+                    tlLabel.appendChild(tlt);
+                    tlLabel.appendChild(tlv);
+
+                    const timelineSlider = document.createElement('input');
+                    timelineSlider.type = "range";
+                    timelineSlider.min = "1";
+                    timelineSlider.max = "3";
+                    timelineSlider.value = "2";
+                    timelineSlider.className = "bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
+                    
+                    const timelineLabels = document.createElement('div');
+                    timelineLabels.className = "flex justify-between text-[10px] font-bold text-zinc-400 uppercase";
+                    timelineLabels.innerHTML = `<span>Rush (2w)</span><span>Standard</span><span>Extended (8w)</span>`;
+                    
+                    timelineDiv.appendChild(tlLabel);
+                    timelineDiv.appendChild(timelineSlider);
+                    timelineDiv.appendChild(timelineLabels);
+
+                    const scopeDiv = document.createElement('div');
+                    scopeDiv.className = "space-y-3";
+                    const scLabel = document.createElement('div');
+                    scLabel.className = "flex justify-between items-center";
+                    const sct = document.createElement('span');
+                    sct.className = "text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase";
+                    sct.textContent = "Scope Depth";
+                    const scv = document.createElement('span');
+                    scv.id = `scopeVal_${index}`;
+                    scv.className = "text-xs font-extrabold text-black dark:text-white uppercase";
+                    scv.textContent = "Standard (100%)";
+                    scLabel.appendChild(sct);
+                    scLabel.appendChild(scv);
+
+                    const scopeSlider = document.createElement('input');
+                    scopeSlider.type = "range";
+                    scopeSlider.min = "1";
+                    scopeSlider.max = "3";
+                    scopeSlider.value = "2";
+                    scopeSlider.className = "bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
+
+                    const scopeLabels = document.createElement('div');
+                    scopeLabels.className = "flex justify-between text-[10px] font-bold text-zinc-400 uppercase";
+                    scopeLabels.innerHTML = `<span>Essential</span><span>Standard</span><span>Enterprise</span>`;
+
+                    scopeDiv.appendChild(scLabel);
+                    scopeDiv.appendChild(scopeSlider);
+                    scopeDiv.appendChild(scopeLabels);
+
+                    controlsDiv.appendChild(timelineDiv);
+                    controlsDiv.appendChild(scopeDiv);
+
+                    const mathBox = document.createElement('div');
+                    mathBox.className = "p-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center justify-between";
+                    mathBox.innerHTML = `<span>Formula Breakdown:</span><span id="mathVal_${index}"></span>`;
+
+                    card.appendChild(headerDiv);
+                    card.appendChild(controlsDiv);
+                    card.appendChild(mathBox);
+                    servicesContainer.appendChild(card);
+
+                    timelineSlider.addEventListener('input', () => {
+                        const val = parseInt(timelineSlider.value);
+                        if (val === 1) {
+                            activeMultipliers[index].timeline = 1.3;
+                            tlv.textContent = "Rush (2 Weeks) | +30%";
+                        } else if (val === 2) {
+                            activeMultipliers[index].timeline = 1.0;
+                            tlv.textContent = "Standard (4 Weeks)";
+                        } else {
+                            activeMultipliers[index].timeline = 0.9;
+                            tlv.textContent = "Extended (8 Weeks) | -10%";
+                        }
+                        recalculateTotal();
+                    });
+
+                    scopeSlider.addEventListener('input', () => {
+                        const val = parseInt(scopeSlider.value);
+                        if (val === 1) {
+                            activeMultipliers[index].scope = 0.5;
+                            scv.textContent = "Essential (50%)";
+                        } else if (val === 2) {
+                            activeMultipliers[index].scope = 1.0;
+                            scv.textContent = "Standard (100%)";
+                        } else {
+                            activeMultipliers[index].scope = 1.5;
+                            scv.textContent = "Enterprise (150%)";
+                        }
+                        recalculateTotal();
+                    });
+                });
+                recalculateTotal();
+            }
+
+            function recalculateTotal() {
+                let total = 0;
+                baseServices.forEach((service, index) => {
+                    const rate = service.estimated_cost ? (service.estimated_cost / (service.base_hours || 40)) : 150.0;
+                    const hours = service.base_hours || 40;
+                    const baseCost = hours * rate;
+                    const tMult = activeMultipliers[index].timeline;
+                    const sMult = activeMultipliers[index].scope;
+                    const finalCost = baseCost * tMult * sMult;
+
+                    const priceVal = document.getElementById(`priceVal_${index}`);
+                    priceVal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(finalCost);
+
+                    const mathVal = document.getElementById(`mathVal_${index}`);
+                    mathVal.textContent = `${hours} hrs x R${rate.toFixed(0)}/hr = R${Math.round(baseCost).toLocaleString('en-ZA')} x ${tMult.toFixed(2)}x (Speed) x ${sMult.toFixed(2)}x (Scope) = R${Math.round(finalCost).toLocaleString('en-ZA')}`;
+
+                    total += finalCost;
+                });
+
+                grandTotal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(total);
+            }
+
+            const canvas = document.getElementById('signaturePad');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+
+            function resizeCanvas() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = 176;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000';
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            const observer = new MutationObserver(() => {
+                ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000';
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+            function startPosition(e) {
+                isDrawing = true;
+                draw(e);
+            }
+
+            function endPosition() {
+                isDrawing = false;
+                ctx.beginPath();
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+
+                let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+                const rect = canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mouseup', endPosition);
+            canvas.addEventListener('mousemove', draw);
+
+            canvas.addEventListener('touchstart', startPosition, { passive: false });
+            canvas.addEventListener('touchend', endPosition);
+            canvas.addEventListener('touchmove', draw, { passive: false });
+
+            document.getElementById('clearCanvas').addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            const approveBtn = document.getElementById('approveBtn');
+            approveBtn.addEventListener('click', () => {
+                alert("Mock Proposal Authorized! In production, this would save to your FastAPI backend.");
+                disableInteractiveState();
+            });
+
+            function disableInteractiveState() {
+                const inputs = document.querySelectorAll('input[type=range]');
+                inputs.forEach(input => input.disabled = true);
+                approveBtn.disabled = true;
+                approveBtn.textContent = "Proposal Authorized & Locked";
+                document.getElementById('clearCanvas').classList.add('hidden');
+                canvas.style.pointerEvents = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
