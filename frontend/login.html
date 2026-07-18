@@ -59,11 +59,11 @@
     <div class="mb-6 flex justify-center">
         <div class="relative h-28 w-28 flex items-center justify-center">
             <!-- Black Logo (Visible in Light Mode) -->
-            <img src="../Assets/Black logo.png" alt="Apex Digital Logo"
+            <img src="../Assets/White logo.png" alt="Apex Digital Logo"
                 class="absolute h-28 w-28 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
                 loading="eager">
             <!-- White Logo (Visible in Dark Mode) -->
-            <img src="../Assets/White logo.png" alt="Apex Digital Logo"
+            <img src="../Assets/Black logo.png" alt="Apex Digital Logo"
                 class="absolute h-28 w-28 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
                 loading="eager">
         </div>
@@ -105,36 +105,6 @@
         </form>
     </div>
 
-    <!-- theme Toggler  -->
-    <script>
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-
-        function updateIcons() {
-            if (document.documentElement.classList.contains('dark')) {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
-        }
-
-
-        updateIcons();
-
-        themeToggleBtn.addEventListener('click', () => {
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.theme = 'light';
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.theme = 'dark';
-            }
-            updateIcons();
-        });
-    </script>
     <script src="app.js"></script>
 </body>
 

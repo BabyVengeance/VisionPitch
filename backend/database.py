@@ -21,7 +21,7 @@ def init_db():
         industry TEXT NOT NULL,
         website_url TEXT, 
         social_media_urls TEXT, 
-        budget REAL NOT NULL,
+        budget REAL,
         client_status TEXT DEFAULT 'Proposal generated',
         CONSTRAINT url_presence CHECK (website_url IS NOT NULL OR social_media_urls IS NOT NULL),
         CONSTRAINT status_check CHECK (

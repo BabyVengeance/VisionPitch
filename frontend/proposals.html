@@ -96,11 +96,11 @@
         class="bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-50 transition-colors duration-200">
         <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="relative h-10 w-10 flex items-center justify-center">
-                    <img src="../Assets/White logo.png" alt="Apex Logo"
-                        class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0">
+                <div class="relative h-[52px] w-[52px] flex items-center justify-center">
                     <img src="../Assets/Black logo.png" alt="Apex Logo"
-                        class="absolute h-10 w-10 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100">
+                        class="absolute h-[52px] w-[52px] object-contain transition-opacity duration-300 opacity-100 dark:opacity-0">
+                    <img src="../Assets/White logo.png" alt="Apex Logo"
+                        class="absolute h-[52px] w-[52px] object-contain transition-opacity duration-300 opacity-0 dark:opacity-100">
                 </div>
                 <span class="text-lg font-extrabold tracking-wider uppercase text-black dark:text-white">Apex
                     VisionPitch</span>
@@ -335,13 +335,6 @@
             const errorMessage = document.getElementById('errorMessage');
             const proposalContent = document.getElementById('proposalContent');
 
-            if (!proposalHash) {
-                loader.classList.add('hidden');
-                errorState.classList.remove('hidden');
-                errorMessage.textContent = "Missing Proposal Reference";
-                return;
-            }
-
             const clientBadge = document.getElementById('clientBadge');
             const proposalTitle = document.getElementById('proposalTitle');
             const proposalSubtitle = document.getElementById('proposalSubtitle');
@@ -350,91 +343,125 @@
             const competitorGrid = document.getElementById('competitorGrid');
             const gapsContainer = document.getElementById('gapsContainer');
             const targetBudgetDisplay = document.getElementById('targetBudgetDisplay');
+            const servicesContainer = document.getElementById('servicesContainer');
+            const grandTotal = document.getElementById('grandTotal');
 
             let baseServices = [];
             let activeMultipliers = {};
 
-            fetch(`http://127.0.0.1:8000/api/proposals/${proposalHash}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Invalid proposal ID or connection error");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    clientBadge.textContent = data.company_name;
-                    clientBadge.classList.remove('hidden');
-                    proposalTitle.textContent = `Tailored Strategy Matrix`;
-                    proposalSubtitle.textContent = `Prepared for ${data.company_name} | ${data.industry} Industry`;
-                    sentimentText.textContent = data.audit_data.online_sentiment_review;
-                    benchmarkText.textContent = data.competitor_benchmarks || "No local benchmark metrics loaded.";
+            const demoData = {
+                company_name: "Acme Corporates",
+                industry: "E-Commerce",
+                budget: 15000,
+                client_status: "Proposal generated",
+                audit_data: {
+                    online_sentiment_review: "Healthy digital footprint with minor SEO gaps.",
+                    visibility_gaps: [
+                        "Missing local schema markup",
+                        "High mobile-to-desktop page speed latency",
+                        "Low citation density in Generative Search Engines (GEO)"
+                    ],
+                    competitor_analysis: [
+                        { name: "Competitor A", platform_leveraged: "SEO Engine", revenue_advantage: "High search ranking." },
+                        { name: "Competitor B", platform_leveraged: "Active Funnels", revenue_advantage: "Efficient customer acquisition." },
+                        { name: "Competitor C", platform_leveraged: "Social Automation", revenue_advantage: "High customer retention." }
+                    ]
+                },
+                competitor_benchmarks: "Industry standard Core Web Vitals score is 75%; Acme is currently at 52%.",
+                recommended_services: [
+                    { service_name: "Frontend Redevelopment", description: "Modernizing the interface for maximum CRO.", base_hours: 40, estimated_cost: 6000 },
+                    { service_name: "Technical SEO Overhaul", description: "Architectural crawlability enhancements.", base_hours: 20, estimated_cost: 3000 },
+                    { service_name: "Generative Engine Optimization", description: "Structuring content for AI citation retrieval.", base_hours: 30, estimated_cost: 4500 }
+                ]
+            };
 
-                    competitorGrid.innerHTML = '';
-                    data.audit_data.competitor_analysis.forEach(comp => {
-                        const col = document.createElement('div');
-                        col.className = "bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-3";
+            function loadProposalData(data) {
+                clientBadge.textContent = data.company_name;
+                clientBadge.classList.remove('hidden');
+                proposalTitle.textContent = `Tailored Strategy Matrix`;
+                proposalSubtitle.textContent = `Prepared for ${data.company_name} | ${data.industry} Industry`;
+                sentimentText.textContent = data.audit_data.online_sentiment_review;
+                benchmarkText.textContent = data.competitor_benchmarks || "No local benchmark metrics loaded.";
 
-                        const name = document.createElement('h3');
-                        name.className = "text-lg font-bold text-black dark:text-white uppercase";
-                        name.textContent = comp.name;
+                competitorGrid.innerHTML = '';
+                data.audit_data.competitor_analysis.forEach(comp => {
+                    const col = document.createElement('div');
+                    col.className = "bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-3";
 
-                        const channelLabel = document.createElement('span');
-                        channelLabel.className = "inline-block px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-700 dark:text-zinc-400";
-                        channelLabel.textContent = comp.platform_leveraged || "Digital Presence";
+                    const name = document.createElement('h3');
+                    name.className = "text-lg font-bold text-black dark:text-white uppercase";
+                    name.textContent = comp.name;
 
-                        const details = document.createElement('p');
-                        details.className = "text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium";
-                        details.textContent = comp.revenue_advantage;
+                    const channelLabel = document.createElement('span');
+                    channelLabel.className = "inline-block px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-zinc-200 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded text-zinc-700 dark:text-zinc-400";
+                    channelLabel.textContent = comp.platform_leveraged || "Digital Presence";
 
-                        col.appendChild(name);
-                        col.appendChild(channelLabel);
-                        col.appendChild(details);
-                        competitorGrid.appendChild(col);
-                    });
+                    const details = document.createElement('p');
+                    details.className = "text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium";
+                    details.textContent = comp.revenue_advantage;
 
-                    gapsContainer.innerHTML = '';
-                    data.audit_data.visibility_gaps.forEach(gap => {
-                        const item = document.createElement('div');
-                        item.className = "flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg";
-
-                        const icon = document.createElement('div');
-                        icon.className = "w-5 h-5 text-black dark:text-white flex-shrink-0";
-                        icon.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
-
-                        const txt = document.createElement('span');
-                        txt.className = "text-sm text-zinc-700 dark:text-zinc-300 font-bold";
-                        txt.textContent = gap;
-
-                        item.appendChild(icon);
-                        item.appendChild(txt);
-                        gapsContainer.appendChild(item);
-                    });
-
-                    targetBudgetDisplay.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(data.budget);
-
-                    baseServices = data.recommended_services;
-                    renderServices();
-
-                    loader.classList.add('hidden');
-                    proposalContent.classList.remove('hidden');
-
-                    if (data.client_status === 'Proposal signed' || data.client_status === 'Proposal declined') {
-                        disableInteractiveState();
-                    }
-                })
-                .catch(err => {
-                    loader.classList.add('hidden');
-                    errorState.classList.remove('hidden');
-                    errorMessage.textContent = "Failed to load Proposal";
+                    col.appendChild(name);
+                    col.appendChild(channelLabel);
+                    col.appendChild(details);
+                    competitorGrid.appendChild(col);
                 });
 
-            const servicesContainer = document.getElementById('servicesContainer');
-            const grandTotal = document.getElementById('grandTotal');
+                gapsContainer.innerHTML = '';
+                data.audit_data.visibility_gaps.forEach(gap => {
+                    const item = document.createElement('div');
+                    item.className = "flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg";
+
+                    const icon = document.createElement('div');
+                    icon.className = "w-5 h-5 text-black dark:text-white flex-shrink-0";
+                    icon.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+
+                    const txt = document.createElement('span');
+                    txt.className = "text-sm text-zinc-700 dark:text-zinc-300 font-bold";
+                    txt.textContent = gap;
+
+                    item.appendChild(icon);
+                    item.appendChild(txt);
+                    gapsContainer.appendChild(item);
+                });
+
+                targetBudgetDisplay.textContent = data.budget ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(data.budget) : "Not Specified";
+
+                baseServices = data.recommended_services;
+                renderServices();
+
+                loader.classList.add('hidden');
+                proposalContent.classList.remove('hidden');
+                resizeCanvas();
+
+                if (data.client_status === 'Proposal signed' || data.client_status === 'Proposal declined') {
+                    disableInteractiveState();
+                }
+            }
+
+            if (proposalHash && proposalHash !== 'demo') {
+                fetch(`http://127.0.0.1:8000/api/proposals/${proposalHash}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Invalid proposal ID or connection error");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        loadProposalData(data);
+                    })
+                    .catch(err => {
+                        loader.classList.add('hidden');
+                        errorState.classList.remove('hidden');
+                        errorMessage.textContent = "Failed to load Proposal";
+                    });
+            } else {
+                loadProposalData(demoData);
+            }
 
             function renderServices() {
                 servicesContainer.innerHTML = '';
                 baseServices.forEach((service, index) => {
-                    activeMultipliers[index] = { timeline: 1.0, scope: 1.0 };
+                    activeMultipliers[index] = 1.0;
 
                     const card = document.createElement('div');
                     card.className = "bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl p-6 space-y-6 shadow-sm";
@@ -467,68 +494,40 @@
                     headerDiv.appendChild(priceLabelDiv);
 
                     const controlsDiv = document.createElement('div');
-                    controlsDiv.className = "grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-zinc-200 dark:border-zinc-900";
+                    controlsDiv.className = "pt-4 border-t border-zinc-200 dark:border-zinc-900 space-y-3";
 
-                    const timelineDiv = document.createElement('div');
-                    timelineDiv.className = "space-y-3";
-                    const tlLabel = document.createElement('div');
-                    tlLabel.className = "flex justify-between items-center";
-                    const tlt = document.createElement('span');
-                    tlt.className = "text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase";
-                    tlt.textContent = "Timeline Speed";
-                    const tlv = document.createElement('span');
-                    tlv.id = `timelineVal_${index}`;
-                    tlv.className = "text-xs font-extrabold text-black dark:text-white uppercase";
-                    tlv.textContent = "Standard (4 Weeks)";
-                    tlLabel.appendChild(tlt);
-                    tlLabel.appendChild(tlv);
-
-                    const timelineSlider = document.createElement('input');
-                    timelineSlider.type = "range";
-                    timelineSlider.min = "1";
-                    timelineSlider.max = "3";
-                    timelineSlider.value = "2";
-                    timelineSlider.className = "bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
-
-                    const timelineLabels = document.createElement('div');
-                    timelineLabels.className = "flex justify-between text-[10px] font-bold text-zinc-400 uppercase";
-                    timelineLabels.innerHTML = `<span>Rush (2w)</span><span>Standard</span><span>Extended (8w)</span>`;
-
-                    timelineDiv.appendChild(tlLabel);
-                    timelineDiv.appendChild(timelineSlider);
-                    timelineDiv.appendChild(timelineLabels);
-
-                    const scopeDiv = document.createElement('div');
-                    scopeDiv.className = "space-y-3";
-                    const scLabel = document.createElement('div');
-                    scLabel.className = "flex justify-between items-center";
+                    const scopeLabelDiv = document.createElement('div');
+                    scopeLabelDiv.className = "flex justify-between items-center";
                     const sct = document.createElement('span');
                     sct.className = "text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase";
-                    sct.textContent = "Scope Depth";
+                    sct.textContent = "Scope & Timeline Optimization";
                     const scv = document.createElement('span');
-                    scv.id = `scopeVal_${index}`;
+                    scv.id = `multiplierVal_${index}`;
                     scv.className = "text-xs font-extrabold text-black dark:text-white uppercase";
-                    scv.textContent = "Standard (100%)";
-                    scLabel.appendChild(sct);
-                    scLabel.appendChild(scv);
+                    scv.textContent = "Standard Baseline (1.0x)";
+                    scopeLabelDiv.appendChild(sct);
+                    scopeLabelDiv.appendChild(scv);
 
-                    const scopeSlider = document.createElement('input');
-                    scopeSlider.type = "range";
-                    scopeSlider.min = "1";
-                    scopeSlider.max = "3";
-                    scopeSlider.value = "2";
-                    scopeSlider.className = "bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
+                    const sliderWrapper = document.createElement('div');
+                    sliderWrapper.className = "py-2 flex items-center min-h-[48px]";
+
+                    const slider = document.createElement('input');
+                    slider.type = "range";
+                    slider.id = `slider_${index}`;
+                    slider.min = "0.5";
+                    slider.max = "2.0";
+                    slider.step = "0.1";
+                    slider.value = "1.0";
+                    slider.className = "w-full bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
+                    sliderWrapper.appendChild(slider);
 
                     const scopeLabels = document.createElement('div');
                     scopeLabels.className = "flex justify-between text-[10px] font-bold text-zinc-400 uppercase";
-                    scopeLabels.innerHTML = `<span>Essential</span><span>Standard</span><span>Enterprise</span>`;
+                    scopeLabels.innerHTML = `<span>Reduced Scope (0.5x)</span><span>Standard Baseline</span><span>Aggressive Timeline (2.0x)</span>`;
 
-                    scopeDiv.appendChild(scLabel);
-                    scopeDiv.appendChild(scopeSlider);
-                    scopeDiv.appendChild(scopeLabels);
-
-                    controlsDiv.appendChild(timelineDiv);
-                    controlsDiv.appendChild(scopeDiv);
+                    controlsDiv.appendChild(scopeLabelDiv);
+                    controlsDiv.appendChild(sliderWrapper);
+                    controlsDiv.appendChild(scopeLabels);
 
                     const mathBox = document.createElement('div');
                     mathBox.className = "p-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center justify-between";
@@ -539,32 +538,15 @@
                     card.appendChild(mathBox);
                     servicesContainer.appendChild(card);
 
-                    timelineSlider.addEventListener('input', () => {
-                        const val = parseInt(timelineSlider.value);
-                        if (val === 1) {
-                            activeMultipliers[index].timeline = 1.3;
-                            tlv.textContent = "Rush (2 Weeks) | +30%";
-                        } else if (val === 2) {
-                            activeMultipliers[index].timeline = 1.0;
-                            tlv.textContent = "Standard (4 Weeks)";
+                    slider.addEventListener('input', (event) => {
+                        const val = parseFloat(event.target.value);
+                        activeMultipliers[index] = val;
+                        if (val === 1.0) {
+                            scv.textContent = "Standard Baseline (1.0x)";
+                        } else if (val < 1.0) {
+                            scv.textContent = `Reduced Scope (${val.toFixed(1)}x)`;
                         } else {
-                            activeMultipliers[index].timeline = 0.9;
-                            tlv.textContent = "Extended (8 Weeks) | -10%";
-                        }
-                        recalculateTotal();
-                    });
-
-                    scopeSlider.addEventListener('input', () => {
-                        const val = parseInt(scopeSlider.value);
-                        if (val === 1) {
-                            activeMultipliers[index].scope = 0.5;
-                            scv.textContent = "Essential (50%)";
-                        } else if (val === 2) {
-                            activeMultipliers[index].scope = 1.0;
-                            scv.textContent = "Standard (100%)";
-                        } else {
-                            activeMultipliers[index].scope = 1.5;
-                            scv.textContent = "Enterprise (150%)";
+                            scv.textContent = `Aggressive Timeline (${val.toFixed(1)}x)`;
                         }
                         recalculateTotal();
                     });
@@ -578,15 +560,14 @@
                     const rate = service.estimated_cost ? (service.estimated_cost / (service.base_hours || 40)) : 150.0;
                     const hours = service.base_hours || 40;
                     const baseCost = hours * rate;
-                    const tMult = activeMultipliers[index].timeline;
-                    const sMult = activeMultipliers[index].scope;
-                    const finalCost = baseCost * tMult * sMult;
+                    const multiplier = activeMultipliers[index];
+                    const finalCost = baseCost * multiplier;
 
                     const priceVal = document.getElementById(`priceVal_${index}`);
                     priceVal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(finalCost);
 
                     const mathVal = document.getElementById(`mathVal_${index}`);
-                    mathVal.textContent = `${hours} hrs x R${rate.toFixed(0)}/hr = R${Math.round(baseCost).toLocaleString('en-ZA')} x ${tMult.toFixed(2)}x (Speed) x ${sMult.toFixed(2)}x (Scope) = R${Math.round(finalCost).toLocaleString('en-ZA')}`;
+                    mathVal.textContent = `${hours} hrs x R${rate.toFixed(0)}/hr = R${Math.round(baseCost).toLocaleString('en-ZA')} x ${multiplier.toFixed(2)}x (Multiplier) = R${Math.round(finalCost).toLocaleString('en-ZA')}`;
 
                     total += finalCost;
                 });
@@ -597,15 +578,34 @@
             const canvas = document.getElementById('signaturePad');
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
+            let hasDrawn = false;
+            let lastWidth = 0;
 
             function resizeCanvas() {
                 const rect = canvas.parentElement.getBoundingClientRect();
+                if (rect.width === 0 || rect.width === lastWidth) return;
+
+                // Save signature image context to restore after canvas resize
+                let tempCanvas = null;
+                if (canvas.width > 0 && canvas.height > 0 && hasDrawn) {
+                    tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = canvas.width;
+                    tempCanvas.height = canvas.height;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(canvas, 0, 0);
+                }
+
+                lastWidth = rect.width;
                 canvas.width = rect.width;
                 canvas.height = 176;
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.strokeStyle = document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000';
+
+                if (tempCanvas) {
+                    ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
+                }
             }
 
             window.addEventListener('resize', resizeCanvas);
@@ -630,8 +630,14 @@
                 if (!isDrawing) return;
                 e.preventDefault();
 
-                let clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                let clientX, clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
 
                 const rect = canvas.getBoundingClientRect();
                 const x = clientX - rect.left;
@@ -641,6 +647,7 @@
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.moveTo(x, y);
+                hasDrawn = true;
             }
 
             canvas.addEventListener('mousedown', startPosition);
@@ -653,10 +660,16 @@
 
             document.getElementById('clearCanvas').addEventListener('click', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                hasDrawn = false;
             });
 
             const approveBtn = document.getElementById('approveBtn');
             approveBtn.addEventListener('click', () => {
+                if (!hasDrawn) {
+                    alert("Please provide a digital signature to authorize the scope.");
+                    return;
+                }
+
                 const rawTotal = grandTotal.textContent.replace(/[^0-9]/g, '');
                 const totalVal = parseFloat(rawTotal);
 
@@ -664,6 +677,14 @@
 
                 approveBtn.disabled = true;
                 approveBtn.textContent = "Finalizing Proposal...";
+
+                if (!proposalHash || proposalHash === 'demo') {
+                    setTimeout(() => {
+                        alert("Mock Proposal Authorized Successfully!");
+                        disableInteractiveState();
+                    }, 800);
+                    return;
+                }
 
                 fetch(`http://127.0.0.1:8000/api/proposals/${proposalHash}/finalize`, {
                     method: 'POST',

@@ -1,6 +1,7 @@
 import sqlite3
 import secrets
 import json
+import re
 
 from fastapi import FastAPI , HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,12 +32,20 @@ class ClientIntake(BaseModel):
     industry: str
     website_url: Optional[str] = None
     social_media_urls: Optional[str] = None
-    budget: float
+    budget: Optional[float] = None
 
 @app.get("/")
 def home():
     return{"status": "Online" , "message": "Apex VisionPitch API is running smoothly"}
 
+def sanitize_input(text: str) -> str:
+    if not text:
+        return text
+    # Strip HTML tags
+    clean = re.sub(r'<[^>]*>', '', text)
+    # Strip common scripting attributes or event handlers
+    clean = re.sub(r'(javascript:|onload|onerror|onclick|onmouseover)\w*=?', '', clean, flags=re.IGNORECASE)
+    return clean.strip()
 
 @app.post("/api/proposals/generate")
 async def generate_proposal(data: ClientIntake):
@@ -46,6 +55,13 @@ async def generate_proposal(data: ClientIntake):
             status_code=400,
             detail="Validation error: Either website or social media URL is required"
         )
+
+    # Sanitize inputs
+    client_name_clean = sanitize_input(data.client_name)
+    company_name_clean = sanitize_input(data.company_name)
+    industry_clean = sanitize_input(data.industry)
+    website_clean = sanitize_input(data.website_url) if data.website_url else None
+    social_clean = sanitize_input(data.social_media_urls) if data.social_media_urls else None
 
     db_path="database.db"
     
@@ -58,17 +74,17 @@ async def generate_proposal(data: ClientIntake):
         cursor.execute('''
             INSERT INTO clients (client_name, company_name, industry, website_url, social_media_urls, budget, client_status)
             VALUES (?, ?, ?, ?, ?, ?, 'Proposal generated')
-        ''', (data.client_name, data.company_name, data.industry, data.website_url, data.social_media_urls, data.budget))  
+        ''', (client_name_clean, company_name_clean, industry_clean, website_clean, social_clean, data.budget))  
 
         client_id=cursor.lastrowid
 
         # Trigger the context call to Gemini API
         ai_payload = run_ai_audit(
-            client_name=data.client_name,
-            company_name=data.company_name,
-            industry=data.industry,
-            url=data.website_url,
-            social=data.social_media_urls,
+            client_name=client_name_clean,
+            company_name=company_name_clean,
+            industry=industry_clean,
+            url=website_clean,
+            social=social_clean,
             budget=data.budget
         )
         
@@ -80,7 +96,11 @@ async def generate_proposal(data: ClientIntake):
             "competitor_benchmarks": ai_payload.get("competitor_benchmarks")
         })
         
-        recommended_services = json.dumps(ai_payload.get("suggested_modules"))
+        suggested_list = ai_payload.get("suggested_modules", [])
+        recommended_services = json.dumps(suggested_list)
+        
+        # Calculate baseline total from the suggested modules
+        proposed_total = sum(float(item.get("estimated_cost", 0)) for item in suggested_list)
         
         # Generate a secure random hash for the proposal link
         proposal_hash = secrets.token_hex(6) 
@@ -89,7 +109,7 @@ async def generate_proposal(data: ClientIntake):
         cursor.execute('''
             INSERT INTO proposals (client_id, proposal_hash, audit_raw_json, recommended_services, final_price)
             VALUES (?, ?, ?, ?, ?)
-        ''', (client_id, proposal_hash, audit_raw_json, recommended_services, data.budget))
+        ''', (client_id, proposal_hash, audit_raw_json, recommended_services, proposed_total))
         
         conn.commit()
         conn.close()
@@ -100,7 +120,7 @@ async def generate_proposal(data: ClientIntake):
             "message": "Proposal generated and stored cleanly in SQLite database file.",
             "client_id": client_id,
             "proposal_hash": proposal_hash,
-            "preview_link": f"/proposal.html?id={proposal_hash}"
+            "preview_link": f"/proposals.html?id={proposal_hash}"
         }
         
     except sqlite3.Error as db_error:
@@ -222,7 +242,7 @@ async def get_all_audits():
     cursor = conn.cursor()
     
     query = '''
-        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash
+        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json
         FROM clients c
         LEFT JOIN proposals p ON c.client_id = p.client_id
         ORDER BY c.client_id DESC
@@ -231,6 +251,28 @@ async def get_all_audits():
     records = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return records
+
+
+#endpoint 3.5 : delete client from dashboard
+@app.delete("/api/admin/clients/{client_id}")
+async def delete_client(client_id: int):
+    """
+    Deletes a client record. Triggers ON DELETE CASCADE to remove associated proposals.
+    """
+    db_path = "database.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA foreign_keys = ON;")
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT client_id FROM clients WHERE client_id = ?", (client_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Target client not located.")
+        
+    cursor.execute("DELETE FROM clients WHERE client_id = ?", (client_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "Success", "message": "Client and associated proposals deleted successfully."}
 
 
 #endpoint 4 : manual override by sales member

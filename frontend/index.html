@@ -58,11 +58,11 @@
         <div
             class="h-24 flex items-center justify-center px-6 border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black transition-colors duration-200">
             <div class="relative h-16 w-16 flex items-center justify-center">
-                <!-- Black Logo (Visible in Light Mode) -->
+                <!-- White Logo  -->
                 <img src="../Assets/White logo.png" alt="Apex Digital Logo"
                     class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
                     loading="eager">
-                <!-- White Logo (Visible in Dark Mode) -->
+                <!-- Black Logo  -->
                 <img src="../Assets/Black logo.png" alt="Apex Digital Logo"
                     class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
                     loading="eager">
@@ -105,7 +105,6 @@
         <header class="flex justify-between items-center mb-8">
             <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Overview</h1>
             <div class="flex items-center gap-3">
-                <!-- Theme Toggle Button -->
                 <button id="themeToggle"
                     class="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 focus:outline-none transition-all"
                     aria-label="Toggle Theme">
@@ -122,7 +121,7 @@
                         </path>
                     </svg>
                 </button>
-                <button
+                <button id="headerGenerateBtn"
                     class="bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black border border-black dark:border-white px-4 py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all shadow-sm active:scale-[0.98]">
                     + Generate Interactive Proposal
                 </button>
@@ -134,31 +133,31 @@
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
                     Generated</p>
-                <p class="text-3xl font-extrabold text-black dark:text-white mt-2">142</p>
+                <p id="countGenerated" class="text-3xl font-extrabold text-black dark:text-white mt-2">0</p>
             </div>
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">Opened
                 </p>
-                <p class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">89</p>
+                <p id="countOpened" class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">0</p>
             </div>
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
                     Unopened</p>
-                <p class="text-3xl font-extrabold text-yellow-600 dark:text-yellow-500 mt-2">53</p>
+                <p id="countUnopened" class="text-3xl font-extrabold text-yellow-600 dark:text-yellow-500 mt-2">0</p>
             </div>
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-b-4 border-b-emerald-500">
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">Closed
                     / Signed</p>
-                <p class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">41</p>
+                <p id="countClosed" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">0</p>
             </div>
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 font-semibold tracking-wide uppercase text-xs">
                     Declined</p>
-                <p class="text-3xl font-extrabold text-red-600 dark:text-red-400 mt-2">12</p>
+                <p id="countDeclined" class="text-3xl font-extrabold text-red-600 dark:text-red-400 mt-2">0</p>
             </div>
         </div>
 
@@ -176,10 +175,10 @@
                             <th class="px-6 py-3.5 font-semibold">Industry</th>
                             <th class="px-6 py-3.5 font-semibold">Value</th>
                             <th class="px-6 py-3.5 font-semibold">Status</th>
-                            <th class="px-6 py-3.5 font-semibold">Date</th>
+                            <th class="px-6 py-3.5 font-semibold">Action / Link</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm divide-y divide-zinc-200 dark:divide-zinc-900">
+                    <tbody id="proposalsTableBody" class="text-sm divide-y divide-zinc-200 dark:divide-zinc-900">
                         <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
                             <td class="px-6 py-4 text-black dark:text-white font-bold">TechFlow Dynamics</td>
                             <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">Software Development</td>
@@ -212,6 +211,103 @@
             </div>
         </div>
     </main>
+
+    <!-- Client Intake Modal -->
+    <div id="intakeModal"
+        class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-white dark:bg-zinc-950 w-full max-w-lg border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-xl overflow-hidden">
+            <div
+                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/40">
+                <h3 class="text-sm font-bold text-black dark:text-white uppercase tracking-wider">New Client Intake</h3>
+                <button id="closeIntakeModal"
+                    class="text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 text-2xl font-semibold leading-none">&times;</button>
+            </div>
+            <form id="intakeForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Client Name</label>
+                    <input type="text" id="intakeClientName" required
+                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Company Name</label>
+                    <input type="text" id="intakeCompanyName" required
+                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Industry</label>
+                    <input type="text" id="intakeIndustry" required
+                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Website URL</label>
+                        <input type="url" id="intakeWebsiteUrl"
+                            class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                            placeholder="https://...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Social URLs</label>
+                        <input type="text" id="intakeSocialUrls"
+                            class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                            placeholder="LinkedIn, Facebook, etc.">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Budget (ZAR)</label>
+                    <input type="number" id="intakeBudget" min="1"
+                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                        placeholder="Optional (ZAR)">
+                </div>
+                <div id="validationError" class="hidden text-xs text-red-500 font-bold"></div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" id="cancelIntake"
+                        class="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors border border-zinc-200 dark:border-zinc-800">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Audit View Modal -->
+    <div id="auditModal"
+        class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-white dark:bg-zinc-950 w-full max-w-2xl border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div
+                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/40">
+                <h3 id="auditModalTitle" class="text-sm font-bold text-black dark:text-white uppercase tracking-wider">
+                    Audit Details</h3>
+                <button id="closeAuditModal"
+                    class="text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 text-2xl font-semibold leading-none">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar text-left flex-1">
+                <div>
+                    <span class="text-xs font-bold uppercase text-zinc-400 tracking-wider block mb-2">Online Sentiment
+                        Review</span>
+                    <p id="auditSentiment"
+                        class="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed font-medium bg-zinc-50 dark:bg-zinc-900/40 p-4 rounded-lg border border-zinc-200 dark:border-zinc-900">
+                    </p>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase text-zinc-400 tracking-wider block mb-2">Visibility Gaps
+                        Identified</span>
+                    <div id="auditGaps" class="grid grid-cols-1 gap-2.5"></div>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase text-zinc-400 tracking-wider block mb-2">Competitor
+                        Analysis</span>
+                    <div id="auditCompetitors" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+            <div
+                class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/40 flex justify-end">
+                <button id="closeAuditBtn"
+                    class="bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-black dark:border-white">Close</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
