@@ -1,21 +1,22 @@
-import sqlite3
 import secrets
 import json
 import re
 
-from fastapi import FastAPI , HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-#importing the ai engine module
+# Import database connection manager and AI engine
+from database import get_db_connection
 from ai_Engine import run_ai_audit
 
 app = FastAPI(title="Apex VisionPitch API")
 
-
-#enabling CORS so that netlify can talk to backend
+# Enabling CORS so that netlify can talk to backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,8 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-#definine exact data struture to expect from front end form
+# Define exact data structure to expect from frontend form
 class ClientIntake(BaseModel):
     client_name: str
     company_name: str
@@ -36,7 +36,7 @@ class ClientIntake(BaseModel):
 
 @app.get("/")
 def home():
-    return{"status": "Online" , "message": "Apex VisionPitch API is running smoothly"}
+    return {"status": "Online", "message": "Apex VisionPitch API is running smoothly"}
 
 def sanitize_input(text: str) -> str:
     if not text:
@@ -49,7 +49,7 @@ def sanitize_input(text: str) -> str:
 
 @app.post("/api/proposals/generate")
 async def generate_proposal(data: ClientIntake):
-    # pre validation rule to ensure web url & social media url not left blank
+    # Pre-validation rule to ensure web url & social media url are not both left blank
     if not data.website_url and not data.social_media_urls:
         raise HTTPException(
             status_code=400,
@@ -63,20 +63,18 @@ async def generate_proposal(data: ClientIntake):
     website_clean = sanitize_input(data.website_url) if data.website_url else None
     social_clean = sanitize_input(data.social_media_urls) if data.social_media_urls else None
 
-    db_path="database.db"
-    
     try:
-        # Insert Client into SQLite and capturing of ID
-        conn = sqlite3.connect(db_path)
+        # Insert Client into PostgreSQL and capture generated client_id via RETURNING
+        conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("PRAGMA foreign_keys = ON;")
 
         cursor.execute('''
             INSERT INTO clients (client_name, company_name, industry, website_url, social_media_urls, budget, client_status)
-            VALUES (?, ?, ?, ?, ?, ?, 'Proposal generated')
+            VALUES (%s, %s, %s, %s, %s, %s, 'Proposal generated')
+            RETURNING client_id
         ''', (client_name_clean, company_name_clean, industry_clean, website_clean, social_clean, data.budget))  
 
-        client_id=cursor.lastrowid
+        client_id = cursor.fetchone()[0]
 
         # Trigger the context call to Gemini API
         ai_payload = run_ai_audit(
@@ -88,7 +86,6 @@ async def generate_proposal(data: ClientIntake):
             budget=data.budget
         )
         
-       
         audit_raw_json = json.dumps({
             "online_sentiment_review": ai_payload.get("online_sentiment_review"),
             "competitor_analysis": ai_payload.get("competitor_analysis"),
@@ -99,37 +96,37 @@ async def generate_proposal(data: ClientIntake):
         suggested_list = ai_payload.get("suggested_modules", [])
         recommended_services = json.dumps(suggested_list)
         
-        # Calculate baseline total from the suggested modules
+        # Calculate baseline total from suggested modules
         proposed_total = sum(float(item.get("estimated_cost", 0)) for item in suggested_list)
         
-        # Generate a secure random hash for the proposal link
+        # Generate a secure random hash for proposal link
         proposal_hash = secrets.token_hex(6) 
         
-        # Insert dynamic audit results into the proposals table linked to the client record
+        # Insert dynamic audit results into proposals table linked to client record
         cursor.execute('''
             INSERT INTO proposals (client_id, proposal_hash, audit_raw_json, recommended_services, final_price)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         ''', (client_id, proposal_hash, audit_raw_json, recommended_services, proposed_total))
         
         conn.commit()
+        cursor.close()
         conn.close()
         
-        # Output the payload configuration back to the caller
+        # Output payload configuration back to caller
         return {
             "status": "Success",
-            "message": "Proposal generated and stored cleanly in SQLite database file.",
+            "message": "Proposal generated and stored cleanly in PostgreSQL database.",
             "client_id": client_id,
             "proposal_hash": proposal_hash,
             "preview_link": f"/proposals.html?id={proposal_hash}"
         }
         
-    except sqlite3.Error as db_error:
+    except psycopg2.Error as db_error:
         raise HTTPException(status_code=500, detail=f"Database operational failure: {str(db_error)}")
     except Exception as general_error:
         raise HTTPException(status_code=500, detail=f"System execution bottleneck: {str(general_error)}")
 
-
-#request schemas for updates
+# Request schemas for updates
 class ProposalFinalize(BaseModel):
     final_price: float
     signature_base64: Optional[str] = None
@@ -138,41 +135,38 @@ class ProposalFinalize(BaseModel):
 class StatusUpdate(BaseModel):
     status: str
 
-
-#endpoint 1 : Client portal lookup + tracking
+# Endpoint 1: Client portal lookup + tracking
 @app.get("/api/proposals/{proposal_hash}")
 async def get_client_proposal(proposal_hash: str):
-    db_path = "database.db"
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    #locate proposal & merge with client fields
+    # Locate proposal & merge with client fields
     query = '''
         SELECT p.*, c.client_name, c.company_name, c.industry, c.budget, c.client_status
         FROM proposals p
         JOIN clients c ON p.client_id = c.client_id
-        WHERE p.proposal_hash = ?
+        WHERE p.proposal_hash = %s
     '''
-    cursor.execute(query,(proposal_hash,))
+    cursor.execute(query, (proposal_hash,))
     record = cursor.fetchone()
 
     if not record:
+        cursor.close()
         conn.close()
-        raise HTTPException(status_code=404 , detail="Proposal link is invalid or has expired")
+        raise HTTPException(status_code=404, detail="Proposal link is invalid or has expired")
 
-    
-    #dynamic tracking 
     record_dict = dict(record)
     if record_dict["client_status"] == "Proposal generated":
         cursor.execute('''
             UPDATE clients 
             SET client_status = 'Proposal viewed' 
-            WHERE client_id = ?
+            WHERE client_id = %s
         ''', (record_dict["client_id"],))
         conn.commit()
         record_dict["client_status"] = 'Proposal viewed'
 
+    cursor.close()
     conn.close()
 
     audit_data = json.loads(record_dict["audit_raw_json"])
@@ -193,53 +187,49 @@ async def get_client_proposal(proposal_hash: str):
         "recommended_services": json.loads(record_dict["recommended_services"])
     }
 
-
-
-#endpoint 2  - digital signature
+# Endpoint 2: Digital signature finalization
 @app.post("/api/proposals/{proposal_hash}/finalize")
 async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
-    if payload.status not in ["Proposal signed","Proposal declined"]:
+    if payload.status not in ["Proposal signed", "Proposal declined"]:
         raise HTTPException(status_code=400, detail="Invalid closing status provided.")
 
-    db_path = "database.db"
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-
-    #find matching proposal record
-    cursor.execute("SELECT client_id FROM proposals WHERE proposal_hash = ?", (proposal_hash,))
+    # Find matching proposal record
+    cursor.execute("SELECT client_id FROM proposals WHERE proposal_hash = %s", (proposal_hash,))
     row = cursor.fetchone()
     if not row:
+        cursor.close()
         conn.close()
         raise HTTPException(status_code=404, detail="Proposal mismatch.")
         
     client_id = row[0]
     
-    # 1. Update the signature and price  in proposals table
+    # 1. Update signature and price in proposals table
     cursor.execute('''
         UPDATE proposals 
-        SET final_price = ?, signature_data = ? 
-        WHERE proposal_hash = ?
+        SET final_price = %s, signature_data = %s 
+        WHERE proposal_hash = %s
     ''', (payload.final_price, payload.signature_base64, proposal_hash))
     
-    # 2. Synch client status for sales dashboard
+    # 2. Sync client status for sales dashboard
     cursor.execute('''
         UPDATE clients 
-        SET client_status = ? 
-        WHERE client_id = ?
+        SET client_status = %s 
+        WHERE client_id = %s
     ''', (payload.status, client_id))
     
     conn.commit()
+    cursor.close()
     conn.close()
     return {"status": "Success", "message": f"Proposal successfully finalized as {payload.status}."}
 
-#endpoint 3 : sales dashboard logs
+# Endpoint 3: Sales dashboard logs
 @app.get("/api/admin/proposals")
 async def get_all_audits():
-    db_path = "database.db"
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     query = '''
         SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json
@@ -248,34 +238,33 @@ async def get_all_audits():
         ORDER BY c.client_id DESC
     '''
     cursor.execute(query)
-    records = [dict(row) for row in cursor.fetchall()]
+    records = cursor.fetchall()
+    cursor.close()
     conn.close()
     return records
 
-
-#endpoint 3.5 : delete client from dashboard
+# Endpoint 3.5: Delete client from dashboard
 @app.delete("/api/admin/clients/{client_id}")
 async def delete_client(client_id: int):
     """
     Deletes a client record. Triggers ON DELETE CASCADE to remove associated proposals.
     """
-    db_path = "database.db"
-    conn = sqlite3.connect(db_path)
-    conn.execute("PRAGMA foreign_keys = ON;")
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT client_id FROM clients WHERE client_id = ?", (client_id,))
+    cursor.execute("SELECT client_id FROM clients WHERE client_id = %s", (client_id,))
     if not cursor.fetchone():
+        cursor.close()
         conn.close()
         raise HTTPException(status_code=404, detail="Target client not located.")
         
-    cursor.execute("DELETE FROM clients WHERE client_id = ?", (client_id,))
+    cursor.execute("DELETE FROM clients WHERE client_id = %s", (client_id,))
     conn.commit()
+    cursor.close()
     conn.close()
     return {"status": "Success", "message": "Client and associated proposals deleted successfully."}
 
-
-#endpoint 4 : manual override by sales member
+# Endpoint 4: Manual override by sales team member
 @app.patch("/api/admin/clients/{client_id}/status")
 async def update_client_status_manually(client_id: int, payload: StatusUpdate):
     """
@@ -285,19 +274,17 @@ async def update_client_status_manually(client_id: int, payload: StatusUpdate):
     if payload.status not in valid_statuses:
         raise HTTPException(status_code=400, detail="Requested status override matches no recognized template validation fields.")
         
-    db_path = "database.db"
-    conn = sqlite3.connect(db_path)
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT client_id FROM clients WHERE client_id = ?", (client_id,))
+    cursor.execute("SELECT client_id FROM clients WHERE client_id = %s", (client_id,))
     if not cursor.fetchone():
+        cursor.close()
         conn.close()
         raise HTTPException(status_code=404, detail="Target client not located.")
         
-    cursor.execute("UPDATE clients SET client_status = ? WHERE client_id = ?", (payload.status, client_id))
+    cursor.execute("UPDATE clients SET client_status = %s WHERE client_id = %s", (payload.status, client_id))
     conn.commit()
+    cursor.close()
     conn.close()
     return {"status": "Success", "message": f"Client status manually set to '{payload.status}' successfully."}
-
-
-   
