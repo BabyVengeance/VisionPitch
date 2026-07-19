@@ -439,7 +439,7 @@
             }
 
             if (proposalHash && proposalHash !== 'demo') {
-                fetch(`http://127.0.0.1:8000/api/proposals/${proposalHash}`)
+                fetch(`https://visionpitch.onrender.com/api/proposals/${proposalHash}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error("Invalid proposal ID or connection error");
@@ -686,7 +686,7 @@
                     return;
                 }
 
-                fetch(`http://127.0.0.1:8000/api/proposals/${proposalHash}/finalize`, {
+                fetch(`https://visionpitch.onrender.com/api/proposals/${proposalHash}/finalize`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = "https://visionpitch.onrender.com";
 
     // Standard Login Logic
     const loginForm = document.getElementById('loginForm');
