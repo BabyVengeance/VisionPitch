@@ -10,13 +10,12 @@ from typing import Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# Import database connection manager and AI engine
 from database import get_db_connection
 from ai_Engine import run_ai_audit
 
 app = FastAPI(title="Apex VisionPitch API")
 
-# Enabling CORS so that netlify can talk to backend
+# Enable CORS so frontend (Netlify or local) can reach our API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define exact data structure to expect from frontend form
 class ClientIntake(BaseModel):
     client_name: str
     company_name: str
@@ -38,25 +36,24 @@ class ClientIntake(BaseModel):
 def home():
     return {"status": "Online", "message": "Apex VisionPitch API is running smoothly"}
 
+# Clean up input text to strip HTML tags and script injections
 def sanitize_input(text: str) -> str:
     if not text:
         return text
-    # Strip HTML tags
     clean = re.sub(r'<[^>]*>', '', text)
-    # Strip common scripting attributes or event handlers
     clean = re.sub(r'(javascript:|onload|onerror|onclick|onmouseover)\w*=?', '', clean, flags=re.IGNORECASE)
     return clean.strip()
 
+# Main intake endpoint: validates form, saves client, runs Gemini AI audit, and stores proposal
 @app.post("/api/proposals/generate")
 async def generate_proposal(data: ClientIntake):
-    # Pre-validation rule to ensure web url & social media url are not both left blank
+    # Require at least one link (website or social media)
     if not data.website_url and not data.social_media_urls:
         raise HTTPException(
             status_code=400,
             detail="Validation error: Either website or social media URL is required"
         )
 
-    # Sanitize inputs
     client_name_clean = sanitize_input(data.client_name)
     company_name_clean = sanitize_input(data.company_name)
     industry_clean = sanitize_input(data.industry)
@@ -64,7 +61,7 @@ async def generate_proposal(data: ClientIntake):
     social_clean = sanitize_input(data.social_media_urls) if data.social_media_urls else None
 
     try:
-        # Insert Client into PostgreSQL and capture generated client_id via RETURNING
+        # Save client to DB and grab the generated client_id
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -76,7 +73,7 @@ async def generate_proposal(data: ClientIntake):
 
         client_id = cursor.fetchone()[0]
 
-        # Trigger the context call to Gemini API
+        # Call Gemini AI engine to generate audit findings & service modules
         ai_payload = run_ai_audit(
             client_name=client_name_clean,
             company_name=company_name_clean,
@@ -96,13 +93,12 @@ async def generate_proposal(data: ClientIntake):
         suggested_list = ai_payload.get("suggested_modules", [])
         recommended_services = json.dumps(suggested_list)
         
-        # Calculate baseline total from suggested modules
         proposed_total = sum(float(item.get("estimated_cost", 0)) for item in suggested_list)
         
-        # Generate a secure random hash for proposal link
+        # Generate random unique hex hash for public proposal link
         proposal_hash = secrets.token_hex(6) 
         
-        # Insert dynamic audit results into proposals table linked to client record
+        # Save generated proposal into database linked to client ID
         cursor.execute('''
             INSERT INTO proposals (client_id, proposal_hash, audit_raw_json, recommended_services, final_price)
             VALUES (%s, %s, %s, %s, %s)
@@ -112,7 +108,6 @@ async def generate_proposal(data: ClientIntake):
         cursor.close()
         conn.close()
         
-        # Output payload configuration back to caller
         return {
             "status": "Success",
             "message": "Proposal generated and stored cleanly in PostgreSQL database.",
@@ -126,7 +121,6 @@ async def generate_proposal(data: ClientIntake):
     except Exception as general_error:
         raise HTTPException(status_code=500, detail=f"System execution bottleneck: {str(general_error)}")
 
-# Request schemas for updates
 class ProposalFinalize(BaseModel):
     final_price: float
     signature_base64: Optional[str] = None
@@ -135,13 +129,12 @@ class ProposalFinalize(BaseModel):
 class StatusUpdate(BaseModel):
     status: str
 
-# Endpoint 1: Client portal lookup + tracking
+# Fetch proposal data by hash & automatically track when client views it
 @app.get("/api/proposals/{proposal_hash}")
 async def get_client_proposal(proposal_hash: str):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # Locate proposal & merge with client fields
     query = '''
         SELECT p.*, c.client_name, c.company_name, c.industry, c.budget, c.client_status
         FROM proposals p
@@ -157,6 +150,7 @@ async def get_client_proposal(proposal_hash: str):
         raise HTTPException(status_code=404, detail="Proposal link is invalid or has expired")
 
     record_dict = dict(record)
+    # Automatically switch status to 'Proposal viewed' when opened for first time
     if record_dict["client_status"] == "Proposal generated":
         cursor.execute('''
             UPDATE clients 
@@ -187,7 +181,7 @@ async def get_client_proposal(proposal_hash: str):
         "recommended_services": json.loads(record_dict["recommended_services"])
     }
 
-# Endpoint 2: Digital signature finalization
+# Save digital signature, updated price, and lock proposal status
 @app.post("/api/proposals/{proposal_hash}/finalize")
 async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
     if payload.status not in ["Proposal signed", "Proposal declined"]:
@@ -196,7 +190,6 @@ async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Find matching proposal record
     cursor.execute("SELECT client_id FROM proposals WHERE proposal_hash = %s", (proposal_hash,))
     row = cursor.fetchone()
     if not row:
@@ -206,14 +199,14 @@ async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
         
     client_id = row[0]
     
-    # 1. Update signature and price in proposals table
+    # Save signature data and final calculated price
     cursor.execute('''
         UPDATE proposals 
         SET final_price = %s, signature_data = %s 
         WHERE proposal_hash = %s
     ''', (payload.final_price, payload.signature_base64, proposal_hash))
     
-    # 2. Sync client status for sales dashboard
+    # Update client status to signed or declined
     cursor.execute('''
         UPDATE clients 
         SET client_status = %s 
@@ -225,7 +218,7 @@ async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
     conn.close()
     return {"status": "Success", "message": f"Proposal successfully finalized as {payload.status}."}
 
-# Endpoint 3: Sales dashboard logs
+# Fetch all proposal logs for the admin sales dashboard
 @app.get("/api/admin/proposals")
 async def get_all_audits():
     conn = get_db_connection()
@@ -243,12 +236,9 @@ async def get_all_audits():
     conn.close()
     return records
 
-# Endpoint 3.5: Delete client from dashboard
+# Delete client record (cascade deletes associated proposals automatically)
 @app.delete("/api/admin/clients/{client_id}")
 async def delete_client(client_id: int):
-    """
-    Deletes a client record. Triggers ON DELETE CASCADE to remove associated proposals.
-    """
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -264,12 +254,9 @@ async def delete_client(client_id: int):
     conn.close()
     return {"status": "Success", "message": "Client and associated proposals deleted successfully."}
 
-# Endpoint 4: Manual override by sales team member
+# Manual status override endpoint for sales team
 @app.patch("/api/admin/clients/{client_id}/status")
 async def update_client_status_manually(client_id: int, payload: StatusUpdate):
-    """
-    Allows the sales rep to manually adjust the client lead lifecycle state.
-    """
     valid_statuses = ['Proposal generated', 'Proposal sent', 'Proposal viewed', 'Proposal signed', 'Proposal declined']
     if payload.status not in valid_statuses:
         raise HTTPException(status_code=400, detail="Requested status override matches no recognized template validation fields.")
@@ -288,3 +275,4 @@ async def update_client_status_manually(client_id: int, payload: StatusUpdate):
     cursor.close()
     conn.close()
     return {"status": "Success", "message": f"Client status manually set to '{payload.status}' successfully."}
+

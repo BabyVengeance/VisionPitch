@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Proposal | Apex VisionPitch</title>
+    <script>
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -309,6 +314,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Theme toggle initialization
             const themeToggleBtn = document.getElementById('themeToggle');
             const sunIcon = document.getElementById('sunIcon');
             const moonIcon = document.getElementById('moonIcon');
@@ -336,6 +342,7 @@
                 updateIcons();
             });
 
+            // Extract proposal ID from URL search parameters
             const urlParams = new URLSearchParams(window.location.search);
             const proposalHash = urlParams.get('id');
 
@@ -384,6 +391,7 @@
                 ]
             };
 
+            // Populate page content with audit results and service modules
             function loadProposalData(data) {
                 clientBadge.textContent = data.company_name;
                 clientBadge.classList.remove('hidden');
@@ -442,11 +450,13 @@
                 proposalContent.classList.remove('hidden');
                 resizeCanvas();
 
+                // Lock interface if proposal is already signed or declined
                 if (data.client_status === 'Proposal signed' || data.client_status === 'Proposal declined') {
                     disableInteractiveState();
                 }
             }
 
+            // Fetch proposal payload from API or fall back to demo dataset
             if (proposalHash && proposalHash !== 'demo') {
                 fetch(`https://visionpitch.onrender.com/api/proposals/${proposalHash}`)
                     .then(response => {
@@ -467,6 +477,7 @@
                 loadProposalData(demoData);
             }
 
+            // Render interactive service modules with scope/timeline sliders
             function renderServices() {
                 servicesContainer.innerHTML = '';
                 baseServices.forEach((service, index) => {
@@ -547,6 +558,7 @@
                     card.appendChild(mathBox);
                     servicesContainer.appendChild(card);
 
+                    // Update item price breakdown when slider moves
                     slider.addEventListener('input', (event) => {
                         const val = parseFloat(event.target.value);
                         activeMultipliers[index] = val;
@@ -563,6 +575,7 @@
                 recalculateTotal();
             }
 
+            // Recalculate total investment price across all modules
             function recalculateTotal() {
                 let total = 0;
                 baseServices.forEach((service, index) => {
@@ -584,6 +597,7 @@
                 grandTotal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(total);
             }
 
+            // Digital signature HTML5 canvas setup
             const canvas = document.getElementById('signaturePad');
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
@@ -594,7 +608,6 @@
                 const rect = canvas.parentElement.getBoundingClientRect();
                 if (rect.width === 0 || rect.width === lastWidth) return;
 
-                // Save signature image context to restore after canvas resize
                 let tempCanvas = null;
                 if (canvas.width > 0 && canvas.height > 0 && hasDrawn) {
                     tempCanvas = document.createElement('canvas');
@@ -672,6 +685,7 @@
                 hasDrawn = false;
             });
 
+            // Convert canvas signature to base64 and submit final proposal authorization to backend
             const approveBtn = document.getElementById('approveBtn');
             approveBtn.addEventListener('click', () => {
                 if (!hasDrawn) {
@@ -723,6 +737,7 @@
                     });
             });
 
+            // Lock all sliders and input controls once authorized
             function disableInteractiveState() {
                 const inputs = document.querySelectorAll('input[type=range]');
                 inputs.forEach(input => input.disabled = true);
@@ -733,6 +748,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

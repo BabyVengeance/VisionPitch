@@ -1,8 +1,5 @@
 # Git Ignore Configuration for VisionPitch
 
-# Project context files
-context.md
-apex_visionpitch_context.md
 
 # SQLite Database
 backend/database.db
@@ -10,17 +7,21 @@ backend/database.db
 *.db-journal
 *.sqlite3
 
-# Python Virtual Environment and Bytecode
+# Python Virtual Environment, Testing, and Bytecode
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
 .venv/
 venv/
 ENV/
 env/
 .env
 
+
 # OS files
 .DS_Store
 Thumbs.db
+
+

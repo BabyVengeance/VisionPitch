@@ -24,7 +24,7 @@ class AuditResult(BaseModel):
     suggested_modules: List[ServiceModule] = Field(description="Modular service line-items configured specifically to fix their visibility gaps")
    
 
-
+# Generates AI digital audit findings and recommended service modules using Gemini API (with local fallback)
 def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, social: str, budget: Optional[float] = None) -> dict:
 
    api_key = os.getenv("GEMINI_API_KEY","YOUR_GEMINI_API_KEY")
@@ -32,6 +32,7 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
 
    budget_text = f"R{budget} (ZAR)" if budget else "Not Specified (Provide standard recommended solutions)"
 
+   # Construct prompt with client details and scoping rules
    prompt = f"""
    You are the Senior Digital Strategist and Technical Architect at Apex Digital SA, a premier South African agency specializing in high-performance Website Development, Search Engine Optimization (SEO), and Generative Engine Optimization (GEO / AI Search Optimization).
 
@@ -63,6 +64,7 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
    """
   
    try:
+       # Ask Gemini to return JSON adhering strictly to the AuditResult schema
        response = client.models.generate_content(
            model='gemini-2.5-flash',
            contents=prompt,
@@ -75,12 +77,12 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
    except Exception as e:
        print(f"Defensive Interceptor: Gemini API pipeline failed ({e}). Implementing pre-cached local fallback.")
        
+       # Pre-cached fallback calculation if API fails or key is unconfigured
        if budget and budget > 0:
            dev_cost = round(budget * 0.45)
            seo_cost = round(budget * 0.30)
            geo_cost = round(budget * 0.25)
        else:
-           # Standard ZAR pricing fallback when budget is not specified
            dev_cost = 12000.0
            seo_cost = 8000.0
            geo_cost = 6000.0

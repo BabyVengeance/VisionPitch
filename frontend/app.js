@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             console.log(`Authenticating user: ${username}`);
+            sessionStorage.setItem("isLoggedIn", "true");
             window.location.href = 'index.html';
         });
     }
@@ -17,11 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             console.log("Logging out...");
+            sessionStorage.removeItem("isLoggedIn");
             window.location.href = 'login.html';
         });
     }
 
-    // Theme Toggle Logic
+    // Toggle dark/light theme and remember choice in local storage
     const themeToggleBtn = document.getElementById('themeToggle');
     if (themeToggleBtn) {
         const sunIcon = document.getElementById('sunIcon');
@@ -51,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Dynamic Dashboard & Modal Intake Logic
+    // Modal controls for new client intake form
     const proposalsTableBody = document.getElementById('proposalsTableBody');
     const countGenerated = document.getElementById('countGenerated');
     const countOpened = document.getElementById('countOpened');
@@ -99,13 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelIntake.addEventListener('click', () => toggleModal(false));
     }
 
-    // Close modal if user clicks outside of it
     window.addEventListener('click', (e) => {
         if (e.target === intakeModal) {
             toggleModal(false);
         }
     });
 
+    // Validate intake form, post client data to API, and reload table
     if (intakeForm) {
         intakeForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetVal = document.getElementById('intakeBudget').value.trim();
             const budget = budgetVal ? parseFloat(budgetVal) : null;
 
-            // Double check validation criteria (CHECK constraint equivalent)
+            // Make sure at least website or social media URL is provided
             if (!website_url && !social_media_urls) {
                 valError.textContent = "Validation error: Either Website URL or Social Media is required.";
                 valError.classList.remove('hidden');
@@ -130,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
             submitBtn.textContent = "Processing...";
 
+            // Send proposal generation request to backend
             fetch(`${API_BASE}/api/proposals/generate`, {
                 method: 'POST',
                 headers: {
@@ -144,33 +147,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     budget
                 })
             })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(data => {
-                        throw new Error(data.detail || "Operational error occurred during ingestion.");
-                    });
-                }
-                return res.json();
-            })
-            .then(data => {
-                toggleModal(false);
-                alert(`Proposal generated successfully! Direct link: ${window.location.origin}/frontend${data.preview_link}`);
-                loadDashboardData();
-            })
-            .catch(err => {
-                valError.textContent = err.message;
-                valError.classList.remove('hidden');
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Submit";
-            });
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(data => {
+                            throw new Error(data.detail || "Operational error occurred during ingestion.");
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    toggleModal(false);
+                    alert(`Proposal generated successfully! Direct link: ${window.location.origin}/frontend${data.preview_link}`);
+                    loadDashboardData();
+                })
+                .catch(err => {
+                    valError.textContent = err.message;
+                    valError.classList.remove('hidden');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Submit";
+                });
         });
     }
 
     let loadedProposals = [];
 
-    // Audit View Modal Elements
     const auditModal = document.getElementById('auditModal');
     const closeAuditModal = document.getElementById('closeAuditModal');
     const closeAuditBtn = document.getElementById('closeAuditBtn');
@@ -191,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === auditModal) toggleAuditModal(false);
     });
 
+    // Populate audit modal with sentiment, visibility gaps, and competitor analysis
     function handleViewAudit(clientId) {
         const rec = loadedProposals.find(r => r.client_id === clientId);
         if (!rec || !rec.audit_raw_json) return;
@@ -200,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
             auditModalTitle.textContent = `Market Visibility Audit — ${rec.company_name}`;
             auditSentiment.textContent = audit.online_sentiment_review || "No sentiment details generated.";
 
-            // Populate gaps
             auditGaps.innerHTML = '';
             if (audit.visibility_gaps && audit.visibility_gaps.length > 0) {
                 audit.visibility_gaps.forEach(gap => {
@@ -218,7 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 auditGaps.innerHTML = '<p class="text-xs text-zinc-550">No visibility gaps logged.</p>';
             }
 
-            // Populate competitors
             auditCompetitors.innerHTML = '';
             if (audit.competitor_analysis && audit.competitor_analysis.length > 0) {
                 audit.competitor_analysis.forEach(comp => {
@@ -240,8 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(e);
             alert("Error parsing audit data.");
         }
-    }    function updateMetricsFromCache() {
-        // Initialize counter buckets
+    }
+
+    // Recalculate sales dashboard summary counts from cached proposals
+    function updateMetricsFromCache() {
         let metrics = {
             'Proposal generated': 0,
             'Proposal sent': 0,
@@ -256,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Update UI metric counters
         if (countGenerated) countGenerated.textContent = metrics['Proposal generated'];
         if (countOpened) countOpened.textContent = metrics['Proposal viewed'];
         if (countUnopened) countUnopened.textContent = metrics['Proposal sent'];
@@ -264,12 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (countDeclined) countDeclined.textContent = metrics['Proposal declined'];
     }
 
+    // Remove client row immediately from DOM & local cache, then delete in backend
     function handleDelete(clientId, rowElement) {
         if (confirm("Are you sure you want to delete this client and all associated proposal data?")) {
             const index = loadedProposals.findIndex(r => r.client_id === clientId);
             if (index === -1) return;
 
-            // Optimistically remove row from DOM with a visual transition
             if (rowElement) {
                 rowElement.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
                 rowElement.style.opacity = '0';
@@ -279,32 +281,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 200);
             }
 
-            // Slice out of local cache and update metrics immediately
             loadedProposals.splice(index, 1);
             updateMetricsFromCache();
 
-            // Run API operation in background
             fetch(`${API_BASE}/api/admin/clients/${clientId}`, {
                 method: 'DELETE'
             })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to delete client.");
-                return res.json();
-            })
-            .catch(err => {
-                alert(err.message);
-                // Revert state by fetching clean data from backend
-                loadDashboardData();
-            });
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to delete client.");
+                    return res.json();
+                })
+                .catch(err => {
+                    alert(err.message);
+                    loadDashboardData();
+                });
         }
     }
 
+    // Update status in local memory instantly and trigger backend update
     function handleStatusChange(clientId, newStatus, selectElement) {
         const rec = loadedProposals.find(r => r.client_id === clientId);
         if (!rec) return;
         const oldStatus = rec.client_status;
 
-        // Optimistically update memory values and card metrics
         rec.client_status = newStatus;
         updateMetricsFromCache();
 
@@ -316,13 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
             'Proposal declined': 'bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-500/20'
         };
 
-        // Mutate dropdown classes in place instantly
         Object.values(badgeColors).forEach(cls => {
             cls.split(' ').forEach(c => selectElement.classList.remove(c));
         });
         badgeColors[newStatus].split(' ').forEach(c => selectElement.classList.add(c));
 
-        // Asynchronously update backend status
         fetch(`${API_BASE}/api/admin/clients/${clientId}/status`, {
             method: 'PATCH',
             headers: {
@@ -330,22 +327,21 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify({ status: newStatus })
         })
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to update client status.");
-            return res.json();
-        })
-        .catch(err => {
-            alert(err.message);
-            // Roll back state on failure
-            rec.client_status = oldStatus;
-            updateMetricsFromCache();
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to update client status.");
+                return res.json();
+            })
+            .catch(err => {
+                alert(err.message);
+                rec.client_status = oldStatus;
+                updateMetricsFromCache();
 
-            Object.values(badgeColors).forEach(cls => {
-                cls.split(' ').forEach(c => selectElement.classList.remove(c));
+                Object.values(badgeColors).forEach(cls => {
+                    cls.split(' ').forEach(c => selectElement.classList.remove(c));
+                });
+                badgeColors[oldStatus].split(' ').forEach(c => selectElement.classList.add(c));
+                selectElement.value = oldStatus;
             });
-            badgeColors[oldStatus].split(' ').forEach(c => selectElement.classList.add(c));
-            selectElement.value = oldStatus;
-        });
     }
 
     function renderTableRows(records) {
@@ -406,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMetricsFromCache();
     }
 
+    // Fetch proposal list from backend API (or fall back to demo records if offline)
     function loadDashboardData() {
         if (!proposalsTableBody) return;
 
@@ -485,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    // Set up event delegation for proposalsTableBody actions
+    // Set up table click and dropdown change listeners using event delegation
     if (proposalsTableBody) {
         proposalsTableBody.addEventListener('change', (e) => {
             if (e.target.classList.contains('status-select')) {

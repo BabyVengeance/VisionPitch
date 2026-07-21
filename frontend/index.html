@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Apex VisionPitch</title>
+    <script>
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,6 +23,7 @@
             }
         }
     </script>
+    <!-- Check saved dark mode preference or system theme on initial page load -->
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -31,7 +37,7 @@
             transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease, box-shadow 0.2s ease !important;
         }
 
-        /* Custom scrollbar for premium look */
+        /* Custom scrollbar styling */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -58,11 +64,9 @@
         <div
             class="h-24 flex items-center justify-center px-6 border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black transition-colors duration-200">
             <div class="relative h-16 w-16 flex items-center justify-center">
-                <!-- White Logo  -->
                 <img src="Assets/White logo.png" alt="Apex Digital Logo"
                     class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
                     loading="eager">
-                <!-- Black Logo  -->
                 <img src="Assets/Black logo.png" alt="Apex Digital Logo"
                     class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
                     loading="eager">
@@ -128,6 +132,7 @@
             </div>
         </header>
 
+        <!-- Dynamic summary metric cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
@@ -161,6 +166,7 @@
             </div>
         </div>
 
+        <!-- Proposals log table -->
         <div
             class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900">
@@ -190,7 +196,7 @@
         </div>
     </main>
 
-    <!-- Client Intake Modal -->
+    <!-- Modal pop-up for creating a new client proposal -->
     <div id="intakeModal"
         class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div
@@ -248,7 +254,7 @@
         </div>
     </div>
 
-    <!-- Audit View Modal -->
+    <!-- Modal pop-up for inspecting full AI market audit results -->
     <div id="auditModal"
         class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div

@@ -3,14 +3,10 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
-# Load environment variables from .env file if present
 load_dotenv()
 
+# Connects to PostgreSQL database using DATABASE_URL env variable
 def get_db_connection(db_url: str = None):
-    """
-    Establishes and returns a connection to the PostgreSQL database.
-    Uses DATABASE_URL environment variable if db_url is not provided.
-    """
     target_url = db_url or os.getenv("DATABASE_URL")
     if not target_url:
         raise ValueError(
@@ -19,10 +15,8 @@ def get_db_connection(db_url: str = None):
         )
     return psycopg2.connect(target_url)
 
+# Initializes clients and proposals tables with constraints & cascade deletion
 def init_db(db_url: str = None):
-    """
-    Initializes PostgreSQL tables for clients and proposals.
-    """
     print("Connecting to PostgreSQL to initialize tables...")
     try:
         conn = get_db_connection(db_url)
@@ -30,7 +24,7 @@ def init_db(db_url: str = None):
 
         print("Creating PostgreSQL tables...")
 
-        # 1. Clients table (PostgreSQL SERIAL identity)
+        # Create clients table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS clients (
             client_id SERIAL PRIMARY KEY,
@@ -54,7 +48,7 @@ def init_db(db_url: str = None):
         );
         ''')
 
-        # 2. Proposals table (PostgreSQL SERIAL identity & ON DELETE CASCADE constraint)
+        # Create proposals table linked to clients with cascade delete
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS proposals (
             proposal_id SERIAL PRIMARY KEY,
@@ -77,3 +71,4 @@ def init_db(db_url: str = None):
 
 if __name__ == "__main__":
     init_db()
+
