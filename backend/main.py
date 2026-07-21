@@ -94,7 +94,15 @@ async def generate_proposal(data: ClientIntake):
             "online_sentiment_review": ai_payload.get("online_sentiment_review"),
             "competitor_analysis": ai_payload.get("competitor_analysis"),
             "visibility_gaps": ai_payload.get("visibility_gaps"),
-            "competitor_benchmarks": ai_payload.get("competitor_benchmarks")
+            "competitor_benchmarks": ai_payload.get("competitor_benchmarks"),
+            "overall_score": ai_payload.get("overall_score", 32),
+            "scores": [
+                ai_payload.get("technical_seo_score", 32),
+                ai_payload.get("geo_score", 20),
+                ai_payload.get("core_web_vitals_score", 38),
+                ai_payload.get("schema_infrastructure_score", 25)
+            ],
+            "benchmark_scores": ai_payload.get("market_benchmark_scores", [78, 70, 75, 82])
         })
         
         suggested_list = ai_payload.get("suggested_modules", [])
@@ -194,7 +202,10 @@ async def get_client_proposal(proposal_hash: str):
         "audit_data": {
             "online_sentiment_review": audit_data.get("online_sentiment_review"),
             "competitor_analysis": audit_data.get("competitor_analysis"),
-            "visibility_gaps": audit_data.get("visibility_gaps")
+            "visibility_gaps": audit_data.get("visibility_gaps"),
+            "overall_score": audit_data.get("overall_score", 32),
+            "scores": audit_data.get("scores", [32, 20, 38, 25]),
+            "benchmark_scores": audit_data.get("benchmark_scores", [78, 70, 75, 82])
         }, 
         "competitor_benchmarks": audit_data.get("competitor_benchmarks"),
         "recommended_services": json.loads(record_dict["recommended_services"])

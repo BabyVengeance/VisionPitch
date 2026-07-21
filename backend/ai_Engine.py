@@ -17,6 +17,12 @@ class ServiceModule(BaseModel):
     estimated_cost: float = Field(description="Base pricing calculation for this item")
 
 class AuditResult(BaseModel):
+    overall_score: int = Field(description="Overall audit health score out of 100 representing client digital maturity, e.g., 32")
+    technical_seo_score: int = Field(description="Technical SEO crawlability & indexability score out of 100, e.g., 32")
+    geo_score: int = Field(description="Generative Engine Optimization (AI Search) score out of 100, e.g., 20")
+    core_web_vitals_score: int = Field(description="Core Web Vitals & mobile performance score out of 100, e.g., 38")
+    schema_infrastructure_score: int = Field(description="Schema.org & structured data entity score out of 100, e.g., 25")
+    market_benchmark_scores: List[int] = Field(description="List of exactly 4 integers out of 100 representing market benchmark averages for [Technical SEO, AI Search (GEO), Core Web Vitals, Schema Infrastructure], e.g., [78, 70, 75, 82]")
     online_sentiment_review: str = Field(description="Honest breakdown and analysis of the prospective client's current online footprint and public sentiment")
     competitor_analysis: List[Competitor] = Field(description="A clear evaluation of exactly 3 competitors leveraging online channels effectively")
     visibility_gaps: List[str] = Field(description="Bulleted list of the client's explicit online visibility gaps and weaknesses")
@@ -88,13 +94,19 @@ def run_ai_audit(client_name:str , company_name: str , industry:str , url:str, s
            geo_cost = 6000.0
        
        return {
-           "online_sentiment_review": "The online presence is currently restricted, showing minimal search engine discovery index markers. Public brand sentiment is currently unmapped due to lack of domain indexation.",
-           "competitor_analysis": [
+            "overall_score": 32,
+            "technical_seo_score": 32,
+            "geo_score": 20,
+            "core_web_vitals_score": 38,
+            "schema_infrastructure_score": 25,
+            "market_benchmark_scores": [78, 70, 75, 82],
+            "online_sentiment_review": "The online presence is currently restricted, showing minimal search engine discovery index markers. Public brand sentiment is currently unmapped due to lack of domain indexation.",
+            "competitor_analysis": [
                {"name": "Competitor Alpha", "platform_leveraged": "Custom Funnels", "revenue_advantage": "Captures majority industry traffic via optimized local landing templates."},
                {"name": "Competitor Beta", "platform_leveraged": "Semantic SEO Hubs", "revenue_advantage": "Maintains authority ranking for high-intent search keywords."},
                {"name": "Competitor Gamma", "platform_leveraged": "Automated Outreach", "revenue_advantage": "Speeds up user intake utilizing interactive onboarding forms."}
-           ],
-           "visibility_gaps": [
+            ],
+            "visibility_gaps": [
                "Missing Structured Schema.org JSON-LD entity markup profiles.",
                "Mobile page speed latency resulting in potential conversion leakage.",
                "Low authority citation index density in LLM Retrieval Engines (GEO Gaps)."

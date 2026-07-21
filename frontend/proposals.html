@@ -209,7 +209,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="relative w-full max-w-[320px] aspect-square flex items-center justify-center">
+                        <div class="relative w-full max-w-[380px] aspect-square flex items-center justify-center">
                             <canvas id="auditRadarCanvas" class="w-full h-full"></canvas>
                         </div>
                     </div>
@@ -381,6 +381,9 @@
                 budget: 15000,
                 client_status: "Proposal generated",
                 audit_data: {
+                    overall_score: 32,
+                    scores: [32, 20, 38, 25],
+                    benchmark_scores: [78, 70, 75, 82],
                     online_sentiment_review: "Foundational online presence with functional core pages, but Core Web Vitals and search authority lag significantly behind industry leaders.",
                     visibility_gaps: [
                         "Lack of structured data (Schema.org markup) for products and events, severely limiting rich snippet visibility.",
@@ -403,15 +406,24 @@
             };
 
             // Vanilla Canvas Engine for Audit Radar Chart
+            let cachedScores = { client: [32, 20, 38, 25], benchmark: [78, 70, 75, 82] };
+
             function drawAuditRadarChart(canvasId, clientScores, benchmarkScores) {
+                if (clientScores && benchmarkScores) {
+                    cachedScores = { client: clientScores, benchmark: benchmarkScores };
+                } else {
+                    clientScores = cachedScores.client;
+                    benchmarkScores = cachedScores.benchmark;
+                }
+
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const dpr = window.devicePixelRatio || 1;
 
                 const rect = canvas.getBoundingClientRect();
-                const width = rect.width || 300;
-                const height = rect.height || 300;
+                const width = rect.width || 380;
+                const height = rect.height || 380;
                 canvas.width = width * dpr;
                 canvas.height = height * dpr;
                 ctx.scale(dpr, dpr);
@@ -420,7 +432,8 @@
                 const numAxes = labels.length;
                 const centerX = width / 2;
                 const centerY = height / 2;
-                const radius = Math.min(centerX, centerY) - 45;
+                // Generous padding radius ensuring left & right text labels fit inside canvas bounds without clipping
+                const radius = Math.min(centerX, centerY) - 90;
 
                 ctx.clearRect(0, 0, width, height);
 
@@ -442,7 +455,7 @@
                     ctx.stroke();
                 }
 
-                // Draw axis lines and labels
+                // Draw axis lines and labels with explicit directional positioning
                 for (let a = 0; a < numAxes; a++) {
                     const angle = (Math.PI * 2 / numAxes) * a - Math.PI / 2;
                     const x = centerX + radius * Math.cos(angle);
@@ -454,14 +467,33 @@
                     ctx.strokeStyle = 'rgba(113, 113, 122, 0.25)';
                     ctx.stroke();
 
-                    // Axis labels
-                    const labelX = centerX + (radius + 24) * Math.cos(angle);
-                    const labelY = centerY + (radius + 16) * Math.sin(angle);
-                    ctx.font = 'bold 10px sans-serif';
+                    // Directional Label Positioning & Alignment
+                    ctx.font = 'bold 9.5px system-ui, -apple-system, sans-serif';
                     ctx.fillStyle = '#a1a1aa';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(labels[a], labelX, labelY);
+
+                    if (a === 0) {
+                        // Top Axis (Technical SEO)
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(labels[a], centerX, centerY - radius - 8);
+                    } else if (a === 1) {
+                        // Right Axis (AI Search (GEO)) - Align left outside the vertex line
+                        ctx.textAlign = 'left';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('AI Search', centerX + radius + 10, centerY - 6);
+                        ctx.fillText('(GEO)', centerX + radius + 10, centerY + 6);
+                    } else if (a === 2) {
+                        // Bottom Axis (Core Web Vitals)
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'top';
+                        ctx.fillText(labels[a], centerX, centerY + radius + 8);
+                    } else if (a === 3) {
+                        // Left Axis (Schema Infrastructure) - Align right outside the vertex line
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('Schema', centerX - radius - 10, centerY - 6);
+                        ctx.fillText('Infrastructure', centerX - radius - 10, centerY + 6);
+                    }
                 }
 
                 // Helper function to draw dataset polygon
@@ -500,6 +532,10 @@
                 drawPolygon(clientScores, '#ef4444', 'rgba(239, 68, 68, 0.25)');
             }
 
+            window.addEventListener('resize', () => {
+                drawAuditRadarChart('auditRadarCanvas');
+            });
+
             // Populate page content with audit results and service modules
             function loadProposalData(data) {
                 clientBadge.textContent = data.company_name;
@@ -513,16 +549,37 @@
                     businessOverviewText.textContent = fullText;
                 }
 
-                if (sentimentSummary) {
-                    sentimentSummary.textContent = "Functional website architecture with active brand engagement across core social channels.";
-                }
-                if (benchmarkSummary) {
-                    benchmarkSummary.textContent = data.competitor_benchmarks || "Industry average Core Web Vitals score is 78%; current performance sits at 32%.";
+                // Update Audit Health Deficit Badge dynamically based on overall score
+                const auditHealthBadge = document.getElementById('auditHealthBadge');
+                if (auditHealthBadge) {
+                    const score = data.audit_data?.overall_score ?? 32;
+                    let badgeLabel = 'CRITICAL DEFICIT';
+                    let colorStyle = 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20';
+                    let dotStyle = 'bg-red-500';
+
+                    if (score >= 80) {
+                        badgeLabel = 'OPTIMAL HEALTH';
+                        colorStyle = 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/20';
+                        dotStyle = 'bg-emerald-500';
+                    } else if (score >= 55) {
+                        badgeLabel = 'MODERATE DEFICIT';
+                        colorStyle = 'bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/20';
+                        dotStyle = 'bg-amber-500';
+                    }
+
+                    auditHealthBadge.className = `inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider border w-fit shadow-sm ${colorStyle}`;
+                    auditHealthBadge.innerHTML = `
+                        <span class="w-2 h-2 rounded-full ${dotStyle} animate-pulse"></span>
+                        <span>${badgeLabel} — ${score}/100</span>
+                    `;
                 }
 
-                // Trigger Radar Chart Render (Client vs Market Benchmark)
+                // Trigger Radar Chart Render dynamically with client vs market benchmark scores
+                const clientScores = data.audit_data?.scores || [32, 20, 38, 25];
+                const benchmarkScores = data.audit_data?.benchmark_scores || [78, 70, 75, 82];
+
                 setTimeout(() => {
-                    drawAuditRadarChart('auditRadarCanvas', [32, 20, 38, 25], [78, 70, 75, 82]);
+                    drawAuditRadarChart('auditRadarCanvas', clientScores, benchmarkScores);
                 }, 50);
 
                 // Render Competitor Strategy Cards with Green/Red Color Stimulation
