@@ -63,15 +63,16 @@
 <body class="bg-white dark:bg-black text-black dark:text-zinc-100 flex h-screen overflow-hidden theme-transition">
     <aside class="w-64 bg-white dark:bg-black border-r border-zinc-200 dark:border-zinc-900 flex flex-col">
         <div
-            class="h-24 flex items-center justify-center px-6 border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black transition-colors duration-200">
-            <div class="relative h-16 w-16 flex items-center justify-center">
+            class="py-5 flex flex-col items-center justify-center px-6 border-b border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black transition-colors duration-200">
+            <div class="relative h-12 w-12 flex items-center justify-center">
                 <img src="Assets/White logo.png" alt="Apex Digital Logo"
-                    class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
+                    class="absolute h-12 w-12 object-contain transition-opacity duration-300 opacity-100 dark:opacity-0"
                     loading="eager">
                 <img src="Assets/Black logo.png" alt="Apex Digital Logo"
-                    class="absolute h-16 w-16 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
+                    class="absolute h-12 w-12 object-contain transition-opacity duration-300 opacity-0 dark:opacity-100"
                     loading="eager">
             </div>
+            <h2 class="text-sm font-extrabold tracking-wider uppercase text-black dark:text-white mt-2">VisionPitch</h2>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             <a href="#" id="navDashboard"
@@ -210,34 +211,43 @@
         <section id="analyticsSection" class="hidden space-y-8">
             <header class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Performance Analytics</h1>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Real-time conversion metrics, revenue metrics, and industry distributions.</p>
+                    <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Performance Analytics
+                    </h1>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Real-time conversion metrics, revenue
+                        metrics, and industry distributions.</p>
                 </div>
             </header>
 
             <!-- Financial KPI Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <div
+                    class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Pipeline Value</p>
                     <p id="statTotalPipeline" class="text-3xl font-extrabold text-black dark:text-white mt-2">R 0</p>
                     <p class="text-xs text-zinc-500 mt-1 font-medium">Cumulative budget value across proposals</p>
                 </div>
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <div
+                    class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                     <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">Average Deal Size</p>
                     <p id="statAvgDeal" class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mt-2">R 0</p>
                     <p class="text-xs text-zinc-500 mt-1 font-medium">Mean contract value per client</p>
                 </div>
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-b-4 border-b-emerald-500">
+                <div
+                    class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-b-4 border-b-emerald-500">
                     <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">Overall Win Rate</p>
-                    <p id="statWinRate" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">0%</p>
+                    <p id="statWinRate" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">0%
+                    </p>
                     <p class="text-xs text-zinc-500 mt-1 font-medium">Proposals successfully signed</p>
                 </div>
             </div>
 
             <!-- Conversion Funnel Progress Bars -->
-            <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-6">
-                <h3 class="text-lg font-bold text-black dark:text-white border-b border-zinc-200 dark:border-zinc-900 pb-3">Proposal Conversion Funnel</h3>
-                
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-6">
+                <h3
+                    class="text-lg font-bold text-black dark:text-white border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                    Proposal Conversion Funnel</h3>
+
                 <div class="space-y-5">
                     <!-- Generated -->
                     <div class="space-y-1.5">
@@ -246,7 +256,9 @@
                             <span id="funnelGeneratedCount" class="text-zinc-500">0 deals (100%)</span>
                         </div>
                         <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="funnelGeneratedBar" class="h-full bg-black dark:bg-white transition-all duration-500" style="width: 100%"></div>
+                            <div id="funnelGeneratedBar"
+                                class="h-full bg-black dark:bg-white transition-all duration-500" style="width: 100%">
+                            </div>
                         </div>
                     </div>
 
@@ -257,7 +269,8 @@
                             <span id="funnelViewedCount" class="text-zinc-500">0 deals (0%)</span>
                         </div>
                         <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="funnelViewedBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                            <div id="funnelViewedBar" class="h-full bg-blue-500 transition-all duration-500"
+                                style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -268,7 +281,8 @@
                             <span id="funnelSignedCount" class="text-zinc-500">0 deals (0%)</span>
                         </div>
                         <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="funnelSignedBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                            <div id="funnelSignedBar" class="h-full bg-emerald-500 transition-all duration-500"
+                                style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -279,7 +293,8 @@
                             <span id="funnelDeclinedCount" class="text-zinc-500">0 deals (0%)</span>
                         </div>
                         <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                            <div id="funnelDeclinedBar" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+                            <div id="funnelDeclinedBar" class="h-full bg-red-500 transition-all duration-500"
+                                style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -288,11 +303,13 @@
             <!-- Win/Loss Ratio & Industry Breakdown Split Cards -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Win vs Loss Health Ratio -->
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
+                <div
+                    class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
                     <h3 class="text-md font-bold text-black dark:text-white">Win / Loss Health Index</h3>
                     <p class="text-xs text-zinc-500">Ratio of Signed Contracts vs. Declined Proposals</p>
                     <div class="flex h-4 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-900 mt-2">
-                        <div id="ratioWinBar" class="bg-emerald-500 transition-all duration-500" style="width: 50%"></div>
+                        <div id="ratioWinBar" class="bg-emerald-500 transition-all duration-500" style="width: 50%">
+                        </div>
                         <div id="ratioLossBar" class="bg-red-500 transition-all duration-500" style="width: 50%"></div>
                     </div>
                     <div class="flex justify-between text-xs font-bold pt-2">
@@ -302,7 +319,8 @@
                 </div>
 
                 <!-- Industry Breakdown -->
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
+                <div
+                    class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
                     <h3 class="text-md font-bold text-black dark:text-white">Industry Sector Distribution</h3>
                     <div id="industryBreakdownContainer" class="space-y-3 pt-1 text-xs">
                         <p class="text-zinc-400">Loading industry sectors...</p>
