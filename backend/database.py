@@ -57,8 +57,14 @@ def init_db(db_url: str = None):
             audit_raw_json TEXT NOT NULL,
             recommended_services TEXT NOT NULL,
             final_price REAL NOT NULL,
-            signature_data TEXT
+            signature_data TEXT,
+            selected_multipliers TEXT
         );
+        ''')
+
+        # Safely migrate existing tables to add selected_multipliers column
+        cursor.execute('''
+        ALTER TABLE proposals ADD COLUMN IF NOT EXISTS selected_multipliers TEXT;
         ''')
 
         conn.commit()

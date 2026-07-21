@@ -441,7 +441,34 @@
                 targetBudgetDisplay.textContent = data.budget ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(data.budget) : "Not Specified";
 
                 baseServices = data.recommended_services;
+
+                // Load saved slider multipliers if proposal was customized & signed
+                if (data.selected_multipliers) {
+                    if (typeof data.selected_multipliers === 'object') {
+                        activeMultipliers = data.selected_multipliers;
+                    } else {
+                        try {
+                            activeMultipliers = JSON.parse(data.selected_multipliers);
+                        } catch (e) {}
+                    }
+                }
+
                 renderServices();
+
+                if (data.final_price && (data.client_status === 'Proposal signed' || data.client_status === 'Proposal declined')) {
+                    grandTotal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(data.final_price);
+                }
+
+                // Render saved digital signature onto canvas if signed
+                if (data.signature_data) {
+                    const img = new Image();
+                    img.onload = function() {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        hasDrawn = true;
+                    };
+                    img.src = data.signature_data;
+                }
 
                 loader.classList.add('hidden');
                 proposalContent.classList.remove('hidden');
@@ -452,6 +479,12 @@
                     disableInteractiveState();
                 }
             }
+
+            // Check for demo proposal local override if testing offline
+            try {
+                const savedDemo = JSON.parse(localStorage.getItem('visionpitch_demo_proposal'));
+                if (savedDemo) Object.assign(demoData, savedDemo);
+            } catch (e) {}
 
             // Fetch proposal payload from API or fall back to demo dataset
             if (proposalHash && proposalHash !== 'demo') {
@@ -478,7 +511,8 @@
             function renderServices() {
                 servicesContainer.innerHTML = '';
                 baseServices.forEach((service, index) => {
-                    activeMultipliers[index] = 1.0;
+                    const initialVal = activeMultipliers[index] !== undefined ? parseFloat(activeMultipliers[index]) : 1.0;
+                    activeMultipliers[index] = initialVal;
 
                     const card = document.createElement('div');
                     card.className = "bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl p-6 space-y-6 shadow-sm";
@@ -521,7 +555,13 @@
                     const scv = document.createElement('span');
                     scv.id = `multiplierVal_${index}`;
                     scv.className = "text-xs font-extrabold text-black dark:text-white uppercase";
-                    scv.textContent = "Standard Baseline (1.0x)";
+                    if (initialVal === 1.0) {
+                        scv.textContent = "Standard Baseline (1.0x)";
+                    } else if (initialVal < 1.0) {
+                        scv.textContent = `Reduced Scope (${initialVal.toFixed(1)}x)`;
+                    } else {
+                        scv.textContent = `Aggressive Timeline (${initialVal.toFixed(1)}x)`;
+                    }
                     scopeLabelDiv.appendChild(sct);
                     scopeLabelDiv.appendChild(scv);
 
@@ -534,7 +574,7 @@
                     slider.min = "0.5";
                     slider.max = "2.0";
                     slider.step = "0.1";
-                    slider.value = "1.0";
+                    slider.value = initialVal.toString();
                     slider.className = "w-full bg-zinc-200 dark:bg-zinc-800 rounded-lg h-1.5 focus:outline-none accent-black dark:accent-white cursor-pointer";
                     sliderWrapper.appendChild(slider);
 
@@ -699,6 +739,16 @@
                 approveBtn.textContent = "Finalizing Proposal...";
 
                 if (!proposalHash || proposalHash === 'demo') {
+                    const demoState = {
+                        final_price: totalVal,
+                        signature_data: signatureBase64,
+                        selected_multipliers: activeMultipliers,
+                        client_status: 'Proposal signed'
+                    };
+                    try {
+                        localStorage.setItem('visionpitch_demo_proposal', JSON.stringify(demoState));
+                    } catch(e) {}
+
                     setTimeout(() => {
                         alert("Mock Proposal Authorized Successfully!");
                         disableInteractiveState();
@@ -714,6 +764,7 @@
                     body: JSON.stringify({
                         final_price: totalVal,
                         signature_base64: signatureBase64,
+                        selected_multipliers: activeMultipliers,
                         status: 'Proposal signed'
                     })
                 })

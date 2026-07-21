@@ -481,6 +481,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        const sigContainer = document.getElementById('drawerSignatureContainer');
+        const sigImg = document.getElementById('drawerSignatureImg');
+        if (sigContainer && sigImg) {
+            if (client.signature_data) {
+                sigImg.src = client.signature_data;
+                sigContainer.classList.remove('hidden');
+            } else {
+                sigContainer.classList.add('hidden');
+            }
+        }
+
         document.getElementById('clientDetailDrawer').classList.remove('hidden');
     };
 

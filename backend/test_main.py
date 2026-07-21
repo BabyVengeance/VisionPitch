@@ -115,6 +115,7 @@ def test_finalize_proposal_flow():
         finalize_payload = {
             "final_price": 18500.0,
             "signature_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+            "selected_multipliers": {"0": 1.2, "1": 0.8},
             "status": "Proposal signed"
         }
         finalize_response = client.post(f"/api/proposals/{proposal_hash}/finalize", json=finalize_payload)
@@ -125,6 +126,8 @@ def test_finalize_proposal_flow():
         assert get_response.status_code == 200
         assert get_response.json()["client_status"] == "Proposal signed"
         assert get_response.json()["budget"] == 18500.0
+        assert get_response.json()["signature_data"] == "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+        assert get_response.json()["selected_multipliers"] == {"0": 1.2, "1": 0.8}
 
         admin_response = client.get("/api/admin/proposals")
         assert admin_response.status_code == 200

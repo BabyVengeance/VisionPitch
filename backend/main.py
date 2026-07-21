@@ -5,15 +5,22 @@ import re
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any, Dict, Union
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from database import get_db_connection
+from database import get_db_connection, init_db
 from ai_Engine import run_ai_audit
 
 app = FastAPI(title="Apex VisionPitch API")
+
+@app.on_event("startup")
+def startup_event():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Startup DB init check warning: {e}")
 
 # Enable CORS so frontend (Netlify or local) can reach our API
 app.add_middleware(
@@ -124,6 +131,7 @@ async def generate_proposal(data: ClientIntake):
 class ProposalFinalize(BaseModel):
     final_price: float
     signature_base64: Optional[str] = None
+    selected_multipliers: Optional[Any] = None
     status: str 
 
 class StatusUpdate(BaseModel):
@@ -165,6 +173,13 @@ async def get_client_proposal(proposal_hash: str):
 
     audit_data = json.loads(record_dict["audit_raw_json"])
 
+    multipliers = None
+    if record_dict.get("selected_multipliers"):
+        try:
+            multipliers = json.loads(record_dict["selected_multipliers"])
+        except Exception:
+            multipliers = record_dict["selected_multipliers"]
+
     return {
         "proposal_id": record_dict["proposal_id"],
         "client_id": record_dict["client_id"],
@@ -174,6 +189,8 @@ async def get_client_proposal(proposal_hash: str):
         "client_status": record_dict["client_status"],
         "budget": record_dict.get("budget"),
         "final_price": record_dict.get("final_price"),
+        "signature_data": record_dict.get("signature_data"),
+        "selected_multipliers": multipliers,
         "audit_data": {
             "online_sentiment_review": audit_data.get("online_sentiment_review"),
             "competitor_analysis": audit_data.get("competitor_analysis"),
@@ -201,12 +218,14 @@ async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
         
     client_id = row[0]
     
-    # Save signature data and final calculated price
+    multipliers_str = json.dumps(payload.selected_multipliers) if isinstance(payload.selected_multipliers, (dict, list)) else payload.selected_multipliers
+
+    # Save signature data, final calculated price, and selected slider multipliers
     cursor.execute('''
         UPDATE proposals 
-        SET final_price = %s, signature_data = %s 
+        SET final_price = %s, signature_data = %s, selected_multipliers = %s 
         WHERE proposal_hash = %s
-    ''', (payload.final_price, payload.signature_base64, proposal_hash))
+    ''', (payload.final_price, payload.signature_base64, multipliers_str, proposal_hash))
     
     # Update client status to signed or declined and sync client budget with agreed final_price
     cursor.execute('''
@@ -227,7 +246,7 @@ async def get_all_audits():
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     query = '''
-        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json, p.final_price
+        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json, p.final_price, p.signature_data, p.selected_multipliers
         FROM clients c
         LEFT JOIN proposals p ON c.client_id = p.client_id
         ORDER BY c.client_id DESC
