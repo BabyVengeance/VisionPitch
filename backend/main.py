@@ -172,6 +172,8 @@ async def get_client_proposal(proposal_hash: str):
         "company_name": record_dict["company_name"],
         "industry": record_dict["industry"],
         "client_status": record_dict["client_status"],
+        "budget": record_dict.get("budget"),
+        "final_price": record_dict.get("final_price"),
         "audit_data": {
             "online_sentiment_review": audit_data.get("online_sentiment_review"),
             "competitor_analysis": audit_data.get("competitor_analysis"),
@@ -206,12 +208,12 @@ async def finalize_proposal(proposal_hash: str, payload: ProposalFinalize):
         WHERE proposal_hash = %s
     ''', (payload.final_price, payload.signature_base64, proposal_hash))
     
-    # Update client status to signed or declined
+    # Update client status to signed or declined and sync client budget with agreed final_price
     cursor.execute('''
         UPDATE clients 
-        SET client_status = %s 
+        SET client_status = %s, budget = %s 
         WHERE client_id = %s
-    ''', (payload.status, client_id))
+    ''', (payload.status, payload.final_price, client_id))
     
     conn.commit()
     cursor.close()
@@ -225,7 +227,7 @@ async def get_all_audits():
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     query = '''
-        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json
+        SELECT c.client_id, c.client_name, c.company_name, c.industry, c.client_status, c.budget, p.proposal_hash, p.audit_raw_json, p.final_price
         FROM clients c
         LEFT JOIN proposals p ON c.client_id = p.client_id
         ORDER BY c.client_id DESC

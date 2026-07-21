@@ -5,11 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Proposal | Apex VisionPitch</title>
-    <script>
-        if (sessionStorage.getItem("isLoggedIn") !== "true") {
-            window.location.href = "login.html";
-        }
-    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -346,6 +342,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const proposalHash = urlParams.get('id');
 
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'https://visionpitch.onrender.com';
             const loader = document.getElementById('loader');
             const errorState = document.getElementById('errorState');
             const errorMessage = document.getElementById('errorMessage');
@@ -458,7 +455,7 @@
 
             // Fetch proposal payload from API or fall back to demo dataset
             if (proposalHash && proposalHash !== 'demo') {
-                fetch(`https://visionpitch.onrender.com/api/proposals/${proposalHash}`)
+                fetch(`${API_BASE}/api/proposals/${proposalHash}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error("Invalid proposal ID or connection error");
@@ -709,7 +706,7 @@
                     return;
                 }
 
-                fetch(`https://visionpitch.onrender.com/api/proposals/${proposalHash}/finalize`, {
+                fetch(`${API_BASE}/api/proposals/${proposalHash}/finalize`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

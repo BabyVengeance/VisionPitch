@@ -266,6 +266,245 @@ document.addEventListener('DOMContentLoaded', () => {
         if (countDeclined) countDeclined.textContent = metrics['Proposal declined'];
     }
 
+    // SPA Section Navigation (Dashboard, Sales Analytics, View Clients)
+    const navDashboard = document.getElementById('navDashboard');
+    const navAnalytics = document.getElementById('navAnalytics');
+    const navClients = document.getElementById('navClients');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const analyticsSection = document.getElementById('analyticsSection');
+    const clientsSection = document.getElementById('clientsSection');
+
+    function switchTab(target) {
+        if (dashboardSection) dashboardSection.classList.add('hidden');
+        if (analyticsSection) analyticsSection.classList.add('hidden');
+        if (clientsSection) clientsSection.classList.add('hidden');
+
+        const activeClass = "flex items-center gap-3 px-3 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg transition-colors font-medium";
+        const inactiveClass = "flex items-center gap-3 px-3 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white rounded-lg transition-colors font-medium";
+
+        if (navDashboard) navDashboard.className = inactiveClass;
+        if (navAnalytics) navAnalytics.className = inactiveClass;
+        if (navClients) navClients.className = inactiveClass;
+
+        if (target === 'dashboard') {
+            if (dashboardSection) dashboardSection.classList.remove('hidden');
+            if (navDashboard) navDashboard.className = activeClass;
+        } else if (target === 'analytics') {
+            if (analyticsSection) analyticsSection.classList.remove('hidden');
+            if (navAnalytics) navAnalytics.className = activeClass;
+            renderAnalytics();
+        } else if (target === 'clients') {
+            if (clientsSection) clientsSection.classList.remove('hidden');
+            if (navClients) navClients.className = activeClass;
+            renderClientDirectory();
+        }
+    }
+
+    if (navDashboard) navDashboard.addEventListener('click', (e) => { e.preventDefault(); switchTab('dashboard'); });
+    if (navAnalytics) navAnalytics.addEventListener('click', (e) => { e.preventDefault(); switchTab('analytics'); });
+    if (navClients) navClients.addEventListener('click', (e) => { e.preventDefault(); switchTab('clients'); });
+
+    // Dynamic Sales Performance Analytics Calculations
+    function renderAnalytics() {
+        if (!loadedProposals || loadedProposals.length === 0) return;
+
+        const totalDeals = loadedProposals.length;
+        let totalRevenue = 0;
+        let countGenerated = 0;
+        let countViewed = 0;
+        let countSigned = 0;
+        let countDeclined = 0;
+        const industryCounts = {};
+
+        loadedProposals.forEach(item => {
+            const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price);
+            if (dealValue) totalRevenue += Number(dealValue);
+            if (item.client_status === 'Proposal generated') countGenerated++;
+            if (item.client_status === 'Proposal viewed') countViewed++;
+            if (item.client_status === 'Proposal signed') countSigned++;
+            if (item.client_status === 'Proposal declined') countDeclined++;
+
+            const ind = item.industry || 'Other';
+            industryCounts[ind] = (industryCounts[ind] || 0) + 1;
+        });
+
+        const avgDeal = totalDeals > 0 ? Math.round(totalRevenue / totalDeals) : 0;
+        const winRate = totalDeals > 0 ? Math.round((countSigned / totalDeals) * 100) : 0;
+
+        // Update Financial KPI Cards
+        const statTotalPipeline = document.getElementById('statTotalPipeline');
+        const statAvgDeal = document.getElementById('statAvgDeal');
+        const statWinRate = document.getElementById('statWinRate');
+
+        if (statTotalPipeline) statTotalPipeline.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(totalRevenue);
+        if (statAvgDeal) statAvgDeal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(avgDeal);
+        if (statWinRate) statWinRate.textContent = `${winRate}%`;
+
+        // Update Conversion Funnel Bars & Labels
+        const setFunnelRow = (countId, barId, count, total) => {
+            const countEl = document.getElementById(countId);
+            const barEl = document.getElementById(barId);
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            if (countEl) countEl.textContent = `${count} deals (${pct}%)`;
+            if (barEl) barEl.style.width = `${pct}%`;
+        };
+
+        setFunnelRow('funnelGeneratedCount', 'funnelGeneratedBar', totalDeals, totalDeals);
+        setFunnelRow('funnelViewedCount', 'funnelViewedBar', countViewed, totalDeals);
+        setFunnelRow('funnelSignedCount', 'funnelSignedBar', countSigned, totalDeals);
+        setFunnelRow('funnelDeclinedCount', 'funnelDeclinedBar', countDeclined, totalDeals);
+
+        // Update Win/Loss Meter
+        const totalClosedOrDeclined = countSigned + countDeclined;
+        const winPct = totalClosedOrDeclined > 0 ? Math.round((countSigned / totalClosedOrDeclined) * 100) : 50;
+        const lossPct = totalClosedOrDeclined > 0 ? (100 - winPct) : 50;
+
+        const ratioWinBar = document.getElementById('ratioWinBar');
+        const ratioLossBar = document.getElementById('ratioLossBar');
+        const ratioSignedLabel = document.getElementById('ratioSignedLabel');
+        const ratioDeclinedLabel = document.getElementById('ratioDeclinedLabel');
+
+        if (ratioWinBar) ratioWinBar.style.width = `${winPct}%`;
+        if (ratioLossBar) ratioLossBar.style.width = `${lossPct}%`;
+        if (ratioSignedLabel) ratioSignedLabel.textContent = `Signed: ${countSigned}`;
+        if (ratioDeclinedLabel) ratioDeclinedLabel.textContent = `Declined: ${countDeclined}`;
+
+        // Render Industry Breakdown Bars
+        const container = document.getElementById('industryBreakdownContainer');
+        if (container) {
+            container.innerHTML = Object.entries(industryCounts).map(([ind, cnt]) => {
+                const indPct = Math.round((cnt / totalDeals) * 100);
+                return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-black dark:text-white">${ind}</span>
+                            <span class="text-zinc-500">${cnt} deals (${indPct}%)</span>
+                        </div>
+                        <div class="w-full h-2 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                            <div class="h-full bg-zinc-700 dark:bg-zinc-300 rounded-full transition-all duration-500" style="width: ${indPct}%"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+    }
+
+    // Client Directory Search & Filtering
+    const clientSearchInput = document.getElementById('clientSearchInput');
+    const clientStatusFilter = document.getElementById('clientStatusFilter');
+    const clientsDirectoryTableBody = document.getElementById('clientsDirectoryTableBody');
+
+    function renderClientDirectory() {
+        if (!clientsDirectoryTableBody) return;
+
+        const query = (clientSearchInput?.value || '').toLowerCase().trim();
+        const selectedStatus = clientStatusFilter?.value || 'All';
+
+        const filtered = loadedProposals.filter(item => {
+            const matchesQuery = (item.client_name || '').toLowerCase().includes(query) || (item.company_name || '').toLowerCase().includes(query);
+            const matchesStatus = selectedStatus === 'All' || item.client_status === selectedStatus;
+            return matchesQuery && matchesStatus;
+        });
+
+        if (filtered.length === 0) {
+            clientsDirectoryTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-zinc-400 dark:text-zinc-500 font-medium">
+                        No client records match your search query.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        clientsDirectoryTableBody.innerHTML = filtered.map(item => {
+            const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price);
+            const budgetFormatted = dealValue ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(dealValue) : 'Not Specified';
+            
+            let statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800">${item.client_status}</span>`;
+            if (item.client_status === 'Proposal viewed') statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">Proposal viewed</span>`;
+            if (item.client_status === 'Proposal signed') statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Proposal signed</span>`;
+            if (item.client_status === 'Proposal declined') statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">Proposal declined</span>`;
+
+            return `
+                <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
+                    <td class="px-6 py-4">
+                        <p class="font-bold text-black dark:text-white">${item.client_name || item.company_name}</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">${item.company_name}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="font-semibold text-black dark:text-white">${item.industry}</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">${budgetFormatted}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-medium">
+                        <span class="inline-block px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold">Active Record</span>
+                    </td>
+                    <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="inspectClientDetails(${item.client_id})" class="px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-xs font-bold hover:opacity-90 transition-opacity">Inspect</button>
+                        <button onclick="copyProposalUrl('${item.proposal_hash}')" class="px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-lg text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors">Copy Link</button>
+                        <button onclick="deleteClientRow(${item.client_id})" class="px-3 py-1.5 bg-red-600/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white rounded-lg text-xs font-bold transition-colors">Delete</button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    if (clientSearchInput) clientSearchInput.addEventListener('input', renderClientDirectory);
+    if (clientStatusFilter) clientStatusFilter.addEventListener('change', renderClientDirectory);
+
+    // Slide-over Drawer inspection and global helper functions
+    window.inspectClientDetails = function(clientId) {
+        const client = loadedProposals.find(c => c.client_id === clientId);
+        if (!client) return;
+
+        document.getElementById('drawerClientName').textContent = client.client_name || client.company_name;
+        document.getElementById('drawerCompanyName').textContent = `${client.company_name} • ${client.industry}`;
+        
+        const statusSelect = document.getElementById('drawerStatusSelect');
+        statusSelect.value = client.client_status;
+        statusSelect.onchange = function() {
+            handleStatusChange(clientId, statusSelect.value, statusSelect);
+        };
+
+        const linkContainer = document.getElementById('drawerProposalLinkContainer');
+        linkContainer.innerHTML = client.proposal_hash ? `
+            <a href="proposals.html?id=${client.proposal_hash}" target="_blank" class="block w-full text-center bg-black dark:bg-white text-white dark:text-black py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity">Open Active Proposal</a>
+        ` : `<p class="text-xs text-zinc-400">No proposal link generated.</p>`;
+
+        if (client.audit_raw_json) {
+            try {
+                const audit = JSON.parse(client.audit_raw_json);
+                document.getElementById('drawerSentiment').textContent = audit.online_sentiment_review || 'No sentiment data available.';
+                
+                const gaps = audit.visibility_gaps;
+                document.getElementById('drawerGaps').textContent = Array.isArray(gaps) ? gaps.join(' • ') : (gaps || 'No visibility gaps recorded.');
+            } catch(e) {
+                document.getElementById('drawerSentiment').textContent = 'Audit parsing error.';
+            }
+        }
+
+        document.getElementById('clientDetailDrawer').classList.remove('hidden');
+    };
+
+    const closeClientDrawerBtn = document.getElementById('closeClientDrawer');
+    if (closeClientDrawerBtn) {
+        closeClientDrawerBtn.addEventListener('click', () => {
+            document.getElementById('clientDetailDrawer').classList.add('hidden');
+        });
+    }
+
+    window.copyProposalUrl = function(hash) {
+        if (!hash) return alert("No valid proposal hash.");
+        const fullUrl = `${window.location.origin}/frontend/proposals.html?id=${hash}`;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            alert(`Proposal link copied to clipboard:\n${fullUrl}`);
+        }).catch(() => {
+            prompt("Copy this proposal link:", fullUrl);
+        });
+    };
+
+    window.deleteClientRow = function(clientId) {
+        handleDelete(clientId, null);
+    };
+
     // Remove client row immediately from DOM & local cache, then delete in backend
     function handleDelete(clientId, rowElement) {
         if (confirm("Are you sure you want to delete this client and all associated proposal data?")) {
@@ -373,7 +612,8 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const statusClass = badgeColors[rec.client_status] || 'bg-zinc-100 text-zinc-500';
-            const formattedValue = rec.budget ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(rec.budget) : "Not Specified";
+            const dealValue = (rec.client_status === 'Proposal signed' && rec.final_price) ? rec.final_price : (rec.budget || rec.final_price);
+            const formattedValue = dealValue ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(dealValue) : "Not Specified";
 
             row.innerHTML = `
                 <td class="px-6 py-4 text-black dark:text-white font-bold">${rec.company_name}</td>

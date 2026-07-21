@@ -124,6 +124,13 @@ def test_finalize_proposal_flow():
         get_response = client.get(f"/api/proposals/{proposal_hash}")
         assert get_response.status_code == 200
         assert get_response.json()["client_status"] == "Proposal signed"
+        assert get_response.json()["budget"] == 18500.0
+
+        admin_response = client.get("/api/admin/proposals")
+        assert admin_response.status_code == 200
+        client_record = next((item for item in admin_response.json() if item["client_id"] == client_id), None)
+        assert client_record is not None
+        assert client_record["budget"] == 18500.0
 
         invalid_payload = {
             "final_price": 18500.0,
