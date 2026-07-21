@@ -89,6 +89,11 @@ def test_generate_proposal_without_budget_succeeds():
     assert json_data["status"] == "Success"
     assert "proposals.html?id=" in json_data["preview_link"]
 
+    # Teardown: Remove test client from database
+    client_id = json_data.get("client_id")
+    if client_id:
+        client.delete(f"/api/admin/clients/{client_id}")
+
 
 # Test full digital signature finalization flow and status lock
 def test_finalize_proposal_flow():
@@ -102,32 +107,37 @@ def test_finalize_proposal_flow():
     }
     response = client.post("/api/proposals/generate", json=payload)
     assert response.status_code == 200
+    client_id = response.json().get("client_id")
     preview_link = response.json()["preview_link"]
     proposal_hash = preview_link.split("id=")[1]
 
-    finalize_payload = {
-        "final_price": 18500.0,
-        "signature_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
-        "status": "Proposal signed"
-    }
-    finalize_response = client.post(f"/api/proposals/{proposal_hash}/finalize", json=finalize_payload)
-    assert finalize_response.status_code == 200
-    assert finalize_response.json()["status"] == "Success"
+    try:
+        finalize_payload = {
+            "final_price": 18500.0,
+            "signature_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+            "status": "Proposal signed"
+        }
+        finalize_response = client.post(f"/api/proposals/{proposal_hash}/finalize", json=finalize_payload)
+        assert finalize_response.status_code == 200
+        assert finalize_response.json()["status"] == "Success"
 
-    get_response = client.get(f"/api/proposals/{proposal_hash}")
-    assert get_response.status_code == 200
-    assert get_response.json()["client_status"] == "Proposal signed"
+        get_response = client.get(f"/api/proposals/{proposal_hash}")
+        assert get_response.status_code == 200
+        assert get_response.json()["client_status"] == "Proposal signed"
 
-    invalid_payload = {
-        "final_price": 18500.0,
-        "signature_base64": "data:image/png;base64,...",
-        "status": "Proposal viewed"
-    }
-    invalid_response = client.post(f"/api/proposals/{proposal_hash}/finalize", json=invalid_payload)
-    assert invalid_response.status_code == 400
+        invalid_payload = {
+            "final_price": 18500.0,
+            "signature_base64": "data:image/png;base64,...",
+            "status": "Proposal viewed"
+        }
+        invalid_response = client.post(f"/api/proposals/{proposal_hash}/finalize", json=invalid_payload)
+        assert invalid_response.status_code == 400
 
-    error_response = client.post("/api/proposals/nonexistenthash/finalize", json=finalize_payload)
-    assert error_response.status_code == 404
+        error_response = client.post("/api/proposals/nonexistenthash/finalize", json=finalize_payload)
+        assert error_response.status_code == 404
+    finally:
+        if client_id:
+            client.delete(f"/api/admin/clients/{client_id}")
 
 
 # Test client deletion and cascade deletion of linked proposal
