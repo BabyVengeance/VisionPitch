@@ -485,8 +485,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const sigImg = document.getElementById('drawerSignatureImg');
         if (sigContainer && sigImg) {
             if (client.signature_data) {
-                sigImg.src = client.signature_data;
-                sigContainer.classList.remove('hidden');
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth || 300;
+                        canvas.height = img.naturalHeight || 150;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imgData.data;
+                        
+                        let totalR = 0, totalG = 0, totalB = 0, count = 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const alpha = data[i + 3];
+                            if (alpha > 30) {
+                                totalR += data[i];
+                                totalG += data[i + 1];
+                                totalB += data[i + 2];
+                                count++;
+                            }
+                        }
+                        
+                        const avgBrightness = count > 0 ? (totalR + totalG + totalB) / (3 * count) : 0;
+                        const wrapper = sigImg.parentElement;
+                        if (avgBrightness > 128) {
+                            if (wrapper) wrapper.className = "rounded-lg overflow-hidden border border-zinc-700 bg-zinc-950 p-3 flex justify-center items-center";
+                        } else {
+                            if (wrapper) wrapper.className = "rounded-lg overflow-hidden border border-zinc-300 bg-zinc-100 p-3 flex justify-center items-center";
+                        }
+                    } catch(e) {
+                        const wrapper = sigImg.parentElement;
+                        if (wrapper) wrapper.className = "rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-zinc-900 dark:bg-zinc-950 p-3 flex justify-center items-center";
+                    }
+                    sigImg.src = client.signature_data;
+                    sigContainer.classList.remove('hidden');
+                };
+                img.onerror = function() {
+                    sigImg.src = client.signature_data;
+                    sigContainer.classList.remove('hidden');
+                };
+                img.src = client.signature_data;
             } else {
                 sigContainer.classList.add('hidden');
             }

@@ -664,6 +664,34 @@
                 if (data.signature_data) {
                     const img = new Image();
                     img.onload = function() {
+                        try {
+                            const tempCanvas = document.createElement('canvas');
+                            tempCanvas.width = img.naturalWidth || canvas.width;
+                            tempCanvas.height = img.naturalHeight || canvas.height;
+                            const tempCtx = tempCanvas.getContext('2d');
+                            tempCtx.drawImage(img, 0, 0);
+                            const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                            const pxData = imgData.data;
+                            let totalR = 0, totalG = 0, totalB = 0, count = 0;
+                            for (let i = 0; i < pxData.length; i += 4) {
+                                if (pxData[i + 3] > 30) {
+                                    totalR += pxData[i];
+                                    totalG += pxData[i + 1];
+                                    totalB += pxData[i + 2];
+                                    count++;
+                                }
+                            }
+                            const avgB = count > 0 ? (totalR + totalG + totalB) / (3 * count) : 0;
+                            const padParent = canvas.parentElement;
+                            if (avgB > 128) {
+                                canvas.className = "w-full h-44 cursor-crosshair touch-none bg-zinc-950";
+                                if (padParent) padParent.className = "bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden relative";
+                            } else {
+                                canvas.className = "w-full h-44 cursor-crosshair touch-none bg-white";
+                                if (padParent) padParent.className = "bg-white border border-zinc-200 rounded-lg overflow-hidden relative";
+                            }
+                        } catch(e) {}
+
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         hasDrawn = true;
