@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (loginError) {
                     loginError.classList.remove('hidden');
                 } else {
-                    alert('Invalid username or password. Please enter username: admin and password: 123');
+                    alert('Invalid username or password.');
                 }
             }
         });
