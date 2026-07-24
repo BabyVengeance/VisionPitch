@@ -6,10 +6,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const username = document.getElementById('username').value;
-            console.log(`Authenticating user: ${username}`);
-            sessionStorage.setItem("isLoggedIn", "true");
-            window.location.href = 'index.html';
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginError = document.getElementById('loginError');
+
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+
+            if (username === 'admin' && password === '123') {
+                if (loginError) loginError.classList.add('hidden');
+                sessionStorage.setItem("isLoggedIn", "true");
+                window.location.href = 'index.html';
+            } else {
+                if (loginError) {
+                    loginError.classList.remove('hidden');
+                } else {
+                    alert('Invalid username or password. Please enter username: admin and password: 123');
+                }
+            }
         });
     }
 
