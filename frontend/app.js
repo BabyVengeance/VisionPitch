@@ -559,6 +559,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let loadedProposals = [];
+    let currentPriorityFilter = 'All';
+    let prioritySortDirection = null; // null | 'desc' | 'asc'
+
+    function getPriorityBadgeHTML(priority) {
+        const p = (priority || 'Medium').toLowerCase();
+        if (p === 'high') {
+            return `<span class="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-bold uppercase text-[10px] px-2 py-0.5 rounded-full inline-flex items-center">High</span>`;
+        } else if (p === 'low') {
+            return `<span class="bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 font-bold uppercase text-[10px] px-2 py-0.5 rounded-full inline-flex items-center">Low</span>`;
+        }
+        return `<span class="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-bold uppercase text-[10px] px-2 py-0.5 rounded-full inline-flex items-center">Medium</span>`;
+    }
+
+    function getPriorityRank(priority) {
+        const p = (priority || 'Medium').toLowerCase();
+        if (p === 'high') return 3;
+        if (p === 'medium') return 2;
+        if (p === 'low') return 1;
+        return 2;
+    }
+
+    function getSavedPriorityOverrides() {
+        try {
+            const saved = localStorage.getItem('vp_priority_overrides');
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function savePriorityOverride(clientId, priority) {
+        const overrides = getSavedPriorityOverrides();
+        overrides[clientId] = priority;
+        localStorage.setItem('vp_priority_overrides', JSON.stringify(overrides));
+    }
+
+    function handlePriorityChange(clientId, newPriority) {
+        const rec = loadedProposals.find(r => r.client_id === clientId);
+        if (rec) {
+            rec.priority = newPriority;
+            savePriorityOverride(clientId, newPriority);
+            renderTableRows(loadedProposals);
+            renderAnalytics();
+            renderClientDirectory();
+        }
+    }
 
     const auditModal = document.getElementById('auditModal');
     const closeAuditModal = document.getElementById('closeAuditModal');
@@ -1284,17 +1330,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderTableRows(records) {
-        loadedProposals = records;
+        // Hydrate priority from records or local override, defaulting to Medium
+        const priorityOverrides = getSavedPriorityOverrides();
+        loadedProposals = records.map(r => ({
+            ...r,
+            priority: priorityOverrides[r.client_id] || r.priority || 'Medium'
+        }));
+
         if (window.updateComboboxDbIndustries) {
-            window.updateComboboxDbIndustries(records);
+            window.updateComboboxDbIndustries(loadedProposals);
         }
         proposalsTableBody.innerHTML = '';
 
-        if (!records || records.length === 0) {
+        // Apply Priority Filter if selected
+        let displayRecords = [...loadedProposals];
+        if (currentPriorityFilter !== 'All') {
+            displayRecords = displayRecords.filter(r => (r.priority || 'Medium').toLowerCase() === currentPriorityFilter.toLowerCase());
+        }
+
+        // Apply Priority Header Sorting if active
+        if (prioritySortDirection) {
+            displayRecords.sort((a, b) => {
+                const rankA = getPriorityRank(a.priority);
+                const rankB = getPriorityRank(b.priority);
+                return prioritySortDirection === 'desc' ? rankB - rankA : rankA - rankB;
+            });
+        }
+
+        if (!displayRecords || displayRecords.length === 0) {
             proposalsTableBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-zinc-400 dark:text-zinc-500 font-medium">
-                        No proposals generated yet. Click <span class="font-bold text-black dark:text-white">+ Generate Interactive Proposal</span> to create one.
+                    <td colspan="6" class="px-6 py-8 text-center text-zinc-400 dark:text-zinc-500 font-medium">
+                        No proposals found matching criteria. Click <span class="font-bold text-black dark:text-white">+ Generate Interactive Proposal</span> to create one.
                     </td>
                 </tr>
             `;
@@ -1302,7 +1369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        records.forEach(rec => {
+        displayRecords.forEach(rec => {
             const row = document.createElement('tr');
             row.className = "hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors";
 
@@ -1314,6 +1381,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Proposal declined': 'bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-500/20'
             };
 
+            const priorityBadgeColors = {
+                'High': 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-bold uppercase text-[10px]',
+                'Medium': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-bold uppercase text-[10px]',
+                'Low': 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 font-bold uppercase text-[10px]'
+            };
+
+            const currentPriority = rec.priority || 'Medium';
+            const priorityClass = priorityBadgeColors[currentPriority] || priorityBadgeColors['Medium'];
+
             const statusClass = badgeColors[rec.client_status] || 'bg-zinc-100 text-zinc-500';
             const dealValue = (rec.client_status === 'Proposal signed' && rec.final_price) ? rec.final_price : (rec.budget || rec.final_price);
             const formattedValue = dealValue ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(dealValue) : "Not Specified";
@@ -1322,6 +1398,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-6 py-4 text-black dark:text-white font-bold">${rec.company_name}</td>
                 <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">${rec.industry}</td>
                 <td class="px-6 py-4 text-zinc-800 dark:text-zinc-200 font-semibold">${formattedValue}</td>
+                <td class="px-6 py-4">
+                    <select data-client-id="${rec.client_id}" class="priority-select px-2.5 py-1 rounded-full text-xs font-semibold ${priorityClass} cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:bg-black">
+                        <option class="text-red-600 dark:text-red-400 dark:bg-zinc-950 font-semibold" value="High" ${currentPriority === 'High' ? 'selected' : ''}>High</option>
+                        <option class="text-blue-600 dark:text-blue-400 dark:bg-zinc-950 font-semibold" value="Medium" ${currentPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+                        <option class="text-zinc-500 dark:text-zinc-400 dark:bg-zinc-950 font-semibold" value="Low" ${currentPriority === 'Low' ? 'selected' : ''}>Low</option>
+                    </select>
+                </td>
                 <td class="px-6 py-4">
                     <select data-client-id="${rec.client_id}" class="status-select px-2.5 py-1 rounded-full text-xs font-semibold ${statusClass} cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:bg-black">
                         <option class="text-zinc-700 dark:text-zinc-300 dark:bg-zinc-950 font-semibold" value="Proposal generated" ${rec.client_status === 'Proposal generated' ? 'selected' : ''}>Proposal generated</option>
@@ -1432,6 +1515,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clientId = parseInt(e.target.getAttribute('data-client-id'));
                 const newStatus = e.target.value;
                 handleStatusChange(clientId, newStatus, e.target);
+            } else if (e.target.classList.contains('priority-select')) {
+                const clientId = parseInt(e.target.getAttribute('data-client-id'));
+                const newPriority = e.target.value;
+                handlePriorityChange(clientId, newPriority);
             }
         });
 
@@ -1444,6 +1531,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clientId = parseInt(e.target.getAttribute('data-client-id'));
                 handleViewAudit(clientId);
             }
+        });
+    }
+
+    // Set up Priority Filter & Priority Header Sort handlers
+    const priorityFilterSelect = document.getElementById('priorityFilterSelect');
+    if (priorityFilterSelect) {
+        priorityFilterSelect.addEventListener('change', (e) => {
+            currentPriorityFilter = e.target.value;
+            renderTableRows(loadedProposals);
+        });
+    }
+
+    const thPriority = document.getElementById('thPriority');
+    if (thPriority) {
+        thPriority.addEventListener('click', () => {
+            if (!prioritySortDirection || prioritySortDirection === 'asc') {
+                prioritySortDirection = 'desc';
+            } else {
+                prioritySortDirection = 'asc';
+            }
+            renderTableRows(loadedProposals);
         });
     }
 
