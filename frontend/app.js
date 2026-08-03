@@ -730,7 +730,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-amber-300 dark:border-amber-500/30 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 rounded border border-amber-300 dark:border-amber-800 flex items-center gap-1">
-                                <span>⏳</span> At-Risk Pitch (Viewed)
+                                <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                At-Risk Pitch (Viewed)
                             </span>
                             <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
                         </div>
@@ -753,7 +754,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-900/50 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-400 rounded border border-blue-300 dark:border-blue-800 flex items-center gap-1">
-                                <span>❄️</span> Unopened Link
+                                <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                Unopened Link
                             </span>
                             <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
                         </div>
@@ -774,7 +776,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/50 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
                             <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 rounded border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                                <span>🎉</span> Closed Won
+                                <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Closed Won
                             </span>
                             <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">${fmtVal}</span>
                         </div>
@@ -788,7 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (badgeCount) badgeCount.textContent = `${alertsCount} Action Alerts`;
-        container.innerHTML = cardsHtml || `<p class="text-emerald-600 dark:text-emerald-400 font-semibold py-4 text-center">🎉 All pitches active & closed!</p>`;
+        container.innerHTML = cardsHtml || `<p class="text-emerald-600 dark:text-emerald-400 font-semibold py-4 text-center">All pitches active & closed!</p>`;
 
         container.onclick = (e) => {
             const btnNudge = e.target.closest('.btn-radar-nudge');
