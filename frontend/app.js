@@ -165,6 +165,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initIndustryCombobox();
 
+    // Macro Sector Mapping & Sub-Tab Analytics Controller
+    const MACRO_SECTORS = {
+        "Energy, Solar & Utilities": ["solar", "energy", "renewable", "epc", "utility", "power", "clean energy"],
+        "Real Estate & Property": ["real estate", "property", "construction", "contracting", "architecture", "interior", "engineering", "housing", "building"],
+        "Commerce & Retail": ["e-commerce", "retail", "automotive", "beauty", "salon", "manufacturing", "industrial", "store", "shop", "fashion"],
+        "Professional & Legal": ["legal", "accounting", "financial", "insurance", "consulting", "recruitment", "hr", "tax", "attorney", "law"],
+        "Health & Wellness": ["health", "medical", "dental", "fitness", "wellness", "spa", "clinic", "hospital", "pharma"],
+        "Tech & Services": ["software", "saas", "tech", "cleaning", "facilities", "security", "entertainment", "event", "media", "it"]
+    };
+
+    function getMacroSector(industry) {
+        if (!industry) return "Tech & Services";
+        const lower = industry.toLowerCase();
+
+        for (const [sector, keywords] of Object.entries(MACRO_SECTORS)) {
+            if (keywords.some(kw => lower.includes(kw))) {
+                return sector;
+            }
+        }
+        return "Professional & Legal";
+    }
+
+    function initAnalyticsSubtabs() {
+        const tabButtons = document.querySelectorAll('.analytics-subtab-btn');
+        const subviews = document.querySelectorAll('.analytics-subview');
+
+        if (!tabButtons || tabButtons.length === 0) return;
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+
+                tabButtons.forEach(b => {
+                    b.className = "analytics-subtab-btn px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all";
+                });
+
+                btn.className = "analytics-subtab-btn px-3 py-1.5 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-all shadow-sm";
+
+                subviews.forEach(view => {
+                    view.classList.add('hidden');
+                });
+
+                const activeView = document.getElementById(`analyticsView${targetTab.charAt(0).toUpperCase() + targetTab.slice(1)}`);
+                if (activeView) activeView.classList.remove('hidden');
+            });
+        });
+    }
+
+    initAnalyticsSubtabs();
+
     // Standard Login Logic
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -641,57 +691,79 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navAnalytics) navAnalytics.addEventListener('click', (e) => { e.preventDefault(); switchTab('analytics'); });
     if (navClients) navClients.addEventListener('click', (e) => { e.preventDefault(); switchTab('clients'); });
 
-    // Dynamic Sales Performance Analytics Calculations
+    // Dynamic Sales Performance Analytics Calculations across 4 Sub-Views
     function renderAnalytics() {
         if (!loadedProposals || loadedProposals.length === 0) return;
 
         const totalDeals = loadedProposals.length;
-        let totalRevenue = 0;
+        let totalPipeline = 0;
+        let wonRevenue = 0;
+        let activePipeline = 0;
+
         let countGenerated = 0;
         let countViewed = 0;
         let countSigned = 0;
         let countDeclined = 0;
+
         const industryCounts = {};
+        const macroSectorData = {
+            "Energy, Solar & Utilities": { won: 0, count: 0 },
+            "Real Estate & Property": { won: 0, count: 0 },
+            "Commerce & Retail": { won: 0, count: 0 },
+            "Professional & Legal": { won: 0, count: 0 },
+            "Health & Wellness": { won: 0, count: 0 },
+            "Tech & Services": { won: 0, count: 0 }
+        };
 
         loadedProposals.forEach(item => {
-            const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price);
-            if (dealValue) totalRevenue += Number(dealValue);
+            const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price || 0);
+            const numVal = Number(dealValue);
+
+            totalPipeline += numVal;
+
+            if (item.client_status === 'Proposal signed') {
+                countSigned++;
+                wonRevenue += numVal;
+            } else if (item.client_status === 'Proposal viewed' || item.client_status === 'Proposal sent') {
+                activePipeline += numVal;
+            }
+
             if (item.client_status === 'Proposal generated') countGenerated++;
             if (item.client_status === 'Proposal viewed') countViewed++;
-            if (item.client_status === 'Proposal signed') countSigned++;
             if (item.client_status === 'Proposal declined') countDeclined++;
 
             const ind = item.industry || 'Other';
             industryCounts[ind] = (industryCounts[ind] || 0) + 1;
+
+            const macro = getMacroSector(ind);
+            if (macroSectorData[macro]) {
+                macroSectorData[macro].count++;
+                if (item.client_status === 'Proposal signed') {
+                    macroSectorData[macro].won += numVal;
+                }
+            }
         });
 
-        const avgDeal = totalDeals > 0 ? Math.round(totalRevenue / totalDeals) : 0;
+        const fmtZAR = (val) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(val);
+
+        // Sub-View 1: Executive Overview Cards
+        const statTotalPipeline = document.getElementById('statTotalPipeline');
+        const statWonRevenue = document.getElementById('statWonRevenue');
+        const statActivePipeline = document.getElementById('statActivePipeline');
+        const statAvgDeal = document.getElementById('statAvgDeal');
+        const statWinRateBadge = document.getElementById('statWinRateBadge');
+
+        if (statTotalPipeline) statTotalPipeline.textContent = fmtZAR(totalPipeline);
+        if (statWonRevenue) statWonRevenue.textContent = fmtZAR(wonRevenue);
+        if (statActivePipeline) statActivePipeline.textContent = fmtZAR(activePipeline);
+
+        const avgDeal = totalDeals > 0 ? Math.round(totalPipeline / totalDeals) : 0;
         const winRate = totalDeals > 0 ? Math.round((countSigned / totalDeals) * 100) : 0;
 
-        // Update Financial KPI Cards
-        const statTotalPipeline = document.getElementById('statTotalPipeline');
-        const statAvgDeal = document.getElementById('statAvgDeal');
-        const statWinRate = document.getElementById('statWinRate');
+        if (statAvgDeal) statAvgDeal.textContent = fmtZAR(avgDeal);
+        if (statWinRateBadge) statWinRateBadge.textContent = `${winRate}% Win`;
 
-        if (statTotalPipeline) statTotalPipeline.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(totalRevenue);
-        if (statAvgDeal) statAvgDeal.textContent = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(avgDeal);
-        if (statWinRate) statWinRate.textContent = `${winRate}%`;
-
-        // Update Conversion Funnel Bars & Labels
-        const setFunnelRow = (countId, barId, count, total) => {
-            const countEl = document.getElementById(countId);
-            const barEl = document.getElementById(barId);
-            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-            if (countEl) countEl.textContent = `${count} deals (${pct}%)`;
-            if (barEl) barEl.style.width = `${pct}%`;
-        };
-
-        setFunnelRow('funnelGeneratedCount', 'funnelGeneratedBar', totalDeals, totalDeals);
-        setFunnelRow('funnelViewedCount', 'funnelViewedBar', countViewed, totalDeals);
-        setFunnelRow('funnelSignedCount', 'funnelSignedBar', countSigned, totalDeals);
-        setFunnelRow('funnelDeclinedCount', 'funnelDeclinedBar', countDeclined, totalDeals);
-
-        // Update Win/Loss Meter
+        // Win/Loss Health Meter
         const totalClosedOrDeclined = countSigned + countDeclined;
         const winPct = totalClosedOrDeclined > 0 ? Math.round((countSigned / totalClosedOrDeclined) * 100) : 50;
         const lossPct = totalClosedOrDeclined > 0 ? (100 - winPct) : 50;
@@ -706,7 +778,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ratioSignedLabel) ratioSignedLabel.textContent = `Signed: ${countSigned}`;
         if (ratioDeclinedLabel) ratioDeclinedLabel.textContent = `Declined: ${countDeclined}`;
 
-        // Render Industry Breakdown Bars
+        // Sub-View 2: Macro Sector Performance Matrix Grid & Top Sector Spotlight
+        const macroGrid = document.getElementById('macroSectorsGrid');
+        if (macroGrid) {
+            let topSector = { name: "None", won: -1 };
+            let gridHtml = '';
+
+            for (const [secName, data] of Object.entries(macroSectorData)) {
+                if (data.won > topSector.won && data.won > 0) {
+                    topSector = { name: secName, won: data.won };
+                } else if (topSector.won === -1 && data.count > 0) {
+                    topSector = { name: secName, won: data.won };
+                }
+
+                gridHtml += `
+                    <div class="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-black dark:text-white text-xs">${secName}</span>
+                            <span class="px-2 py-0.5 text-[9px] font-extrabold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded">${data.count} deals</span>
+                        </div>
+                        <p class="text-base font-extrabold text-emerald-600 dark:text-emerald-400">${fmtZAR(data.won)}</p>
+                        <p class="text-[10px] text-zinc-400">Closed Revenue</p>
+                    </div>
+                `;
+            }
+            macroGrid.innerHTML = gridHtml;
+
+            const topSectorName = document.getElementById('topSectorName');
+            const topSectorValue = document.getElementById('topSectorValue');
+            if (topSectorName) topSectorName.textContent = topSector.name;
+            if (topSectorValue) topSectorValue.textContent = fmtZAR(topSector.won > -1 ? topSector.won : 0);
+        }
+
+        // Sub-View 3: Granular Industry Distribution
         const container = document.getElementById('industryBreakdownContainer');
         if (container) {
             container.innerHTML = Object.entries(industryCounts).map(([ind, cnt]) => {
@@ -722,6 +826,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>`;
             }).join('');
+        }
+
+        // Sub-View 4: Funnel Progress Bars & Pitch Optimization Advice
+        const setFunnelRow = (countId, barId, count, total) => {
+            const countEl = document.getElementById(countId);
+            const barEl = document.getElementById(barId);
+            const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+            if (countEl) countEl.textContent = `${count} deals (${pct}%)`;
+            if (barEl) barEl.style.width = `${pct}%`;
+        };
+
+        setFunnelRow('funnelGeneratedCount', 'funnelGeneratedBar', totalDeals, totalDeals);
+        setFunnelRow('funnelViewedCount', 'funnelViewedBar', countViewed, totalDeals);
+        setFunnelRow('funnelSignedCount', 'funnelSignedBar', countSigned, totalDeals);
+        setFunnelRow('funnelDeclinedCount', 'funnelDeclinedBar', countDeclined, totalDeals);
+
+        const openRate = totalDeals > 0 ? Math.round((countViewed / totalDeals) * 100) : 0;
+        const pitchAdviceText = document.getElementById('pitchAdviceText');
+        if (pitchAdviceText) {
+            if (openRate < 40) {
+                pitchAdviceText.textContent = `Current proposal open rate is low (${openRate}%). Recommend following up via WhatsApp/Email immediately after generation to ensure prospect views link.`;
+            } else if (winRate >= 50) {
+                pitchAdviceText.textContent = `Excellent conversion velocity! Win rate is strong at ${winRate}%. Focus on expanding top-of-funnel intake volume.`;
+            } else {
+                pitchAdviceText.textContent = `High view rate (${openRate}%) with ${winRate}% closed rate. Review ROI proposal terms or add explicit pricing packages to drive closing velocity.`;
+            }
         }
     }
 
