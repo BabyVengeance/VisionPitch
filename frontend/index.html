@@ -179,8 +179,17 @@
             <!-- Proposals log table -->
             <div
                 class="bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900">
+                <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center flex-wrap gap-3">
                     <h3 class="text-lg font-bold tracking-tight text-black dark:text-white">Recent Proposals</h3>
+                    <div class="flex items-center gap-2">
+                        <label for="priorityFilterSelect" class="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400 hidden sm:inline">Priority:</label>
+                        <select id="priorityFilterSelect" class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer">
+                            <option value="All">All Priorities</option>
+                            <option value="High">High Only</option>
+                            <option value="Medium">Medium Only</option>
+                            <option value="Low">Low Only</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -190,13 +199,17 @@
                                 <th class="px-6 py-3.5 font-semibold">Company Name</th>
                                 <th class="px-6 py-3.5 font-semibold">Industry</th>
                                 <th class="px-6 py-3.5 font-semibold">Value</th>
+                                <th id="thPriority" class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors flex items-center gap-1 select-none" title="Click to sort by priority">
+                                    Priority
+                                    <svg class="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                </th>
                                 <th class="px-6 py-3.5 font-semibold">Status</th>
                                 <th class="px-6 py-3.5 font-semibold">Action / Link</th>
                             </tr>
                         </thead>
                         <tbody id="proposalsTableBody" class="text-sm divide-y divide-zinc-200 dark:divide-zinc-900">
                             <tr>
-                                <td colspan="5"
+                                <td colspan="6"
                                     class="px-6 py-8 text-center text-zinc-400 dark:text-zinc-500 font-medium">
                                     Loading proposals database...
                                 </td>
@@ -383,17 +396,28 @@
                     <input type="text" id="clientSearchInput" placeholder="Search by client or company..."
                         class="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
                 </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <label class="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">Filter
-                        Status:</label>
-                    <select id="clientStatusFilter"
-                        class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:outline-none">
-                        <option value="All">All Statuses</option>
-                        <option value="Proposal generated">Proposal generated</option>
-                        <option value="Proposal viewed">Proposal viewed</option>
-                        <option value="Proposal signed">Proposal signed</option>
-                        <option value="Proposal declined">Proposal declined</option>
-                    </select>
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">Status:</label>
+                        <select id="clientStatusFilter"
+                            class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:outline-none cursor-pointer">
+                            <option value="All">All Statuses</option>
+                            <option value="Proposal generated">Proposal generated</option>
+                            <option value="Proposal viewed">Proposal viewed</option>
+                            <option value="Proposal signed">Proposal signed</option>
+                            <option value="Proposal declined">Proposal declined</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400">Priority:</label>
+                        <select id="clientPriorityFilter"
+                            class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-black dark:text-white focus:outline-none cursor-pointer">
+                            <option value="All">All Priorities</option>
+                            <option value="High">High Priority</option>
+                            <option value="Medium">Medium Priority</option>
+                            <option value="Low">Low Priority</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -450,6 +474,17 @@
                         <option value="Proposal viewed">Proposal viewed</option>
                         <option value="Proposal signed">Proposal signed</option>
                         <option value="Proposal declined">Proposal declined</option>
+                    </select>
+                </div>
+
+                <!-- Priority Management Dropdown -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold uppercase text-zinc-400">Override Proposal Priority</label>
+                    <select id="drawerPrioritySelect"
+                        class="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2.5 text-sm font-semibold text-black dark:text-white focus:outline-none cursor-pointer">
+                        <option value="High">High Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="Low">Low Priority</option>
                     </select>
                 </div>
 
