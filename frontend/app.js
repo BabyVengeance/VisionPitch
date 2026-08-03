@@ -691,29 +691,137 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navAnalytics) navAnalytics.addEventListener('click', (e) => { e.preventDefault(); switchTab('analytics'); });
     if (navClients) navClients.addEventListener('click', (e) => { e.preventDefault(); switchTab('clients'); });
 
-    // Dynamic Sales Performance Analytics Calculations across 4 Sub-Views
+    // Sales Command Center Engine: Quota Attainment, Weighted Forecast & Action Radar
+    const MONTHLY_QUOTA_TARGET = 100000; // R100,000 monthly sales quota target
+
+    function copyWhatsAppScript(clientName, companyName, industry, proposalHash) {
+        const link = proposalHash ? `${window.location.origin}/frontend/proposals.html?id=${proposalHash}` : window.location.href;
+        const text = `Hi ${clientName}, Rohan here from Apex Digital. I noticed you had a chance to look over the ${industry} digital pitch for ${companyName} (${link}). Did you have 2 minutes for a quick chat regarding the ROI timeline?`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            alert(`WhatsApp follow-up script for ${clientName} copied to clipboard!`);
+        }).catch(err => {
+            console.error('Clipboard error:', err);
+            alert(`Follow-up Script:\n\n${text}`);
+        });
+    }
+
+    function renderActionRadar(proposals) {
+        const container = document.getElementById('actionRadarContainer');
+        const badgeCount = document.getElementById('actionRadarBadgeCount');
+        if (!container) return;
+
+        if (!proposals || proposals.length === 0) {
+            container.innerHTML = `<p class="text-zinc-400 italic py-4 text-center">No active proposals in pipeline.</p>`;
+            if (badgeCount) badgeCount.textContent = "0 Alerts";
+            return;
+        }
+
+        let alertsCount = 0;
+        let cardsHtml = '';
+
+        proposals.forEach(p => {
+            const val = (p.client_status === 'Proposal signed' && p.final_price) ? p.final_price : (p.budget || p.final_price || 0);
+            const fmtVal = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(val);
+
+            if (p.client_status === 'Proposal viewed') {
+                alertsCount++;
+                cardsHtml += `
+                    <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-amber-300 dark:border-amber-500/30 space-y-2 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 rounded border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                                <span>⏳</span> At-Risk Pitch (Viewed)
+                            </span>
+                            <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
+                        </div>
+                        <div class="flex justify-between items-baseline">
+                            <div>
+                                <h4 class="font-bold text-black dark:text-white text-xs">${p.company_name}</h4>
+                                <p class="text-[11px] text-zinc-500">${p.client_name} • ${p.industry}</p>
+                            </div>
+                            <button type="button" data-action="whatsapp-nudge" data-client="${p.client_name}" data-company="${p.company_name}" data-industry="${p.industry}" data-hash="${p.proposal_hash || ''}"
+                                class="btn-radar-nudge px-2.5 py-1 text-[10px] font-bold rounded bg-amber-500 hover:bg-amber-600 text-black transition-colors flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z"/></svg>
+                                WhatsApp Follow-Up
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (p.client_status === 'Proposal generated' || p.client_status === 'Proposal sent') {
+                alertsCount++;
+                cardsHtml += `
+                    <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-900/50 space-y-2 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-400 rounded border border-blue-300 dark:border-blue-800 flex items-center gap-1">
+                                <span>❄️</span> Unopened Link
+                            </span>
+                            <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
+                        </div>
+                        <div class="flex justify-between items-baseline">
+                            <div>
+                                <h4 class="font-bold text-black dark:text-white text-xs">${p.company_name}</h4>
+                                <p class="text-[11px] text-zinc-500">${p.client_name} • ${p.industry}</p>
+                            </div>
+                            <button type="button" data-action="copy-link" data-hash="${p.proposal_hash || ''}"
+                                class="btn-radar-copy px-2.5 py-1 text-[10px] font-bold rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-black dark:text-white transition-colors">
+                                Copy Pitch Link
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (p.client_status === 'Proposal signed') {
+                cardsHtml += `
+                    <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/50 space-y-2 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 rounded border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                                <span>🎉</span> Closed Won
+                            </span>
+                            <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">${fmtVal}</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-black dark:text-white text-xs">${p.company_name}</h4>
+                            <p class="text-[11px] text-zinc-500">${p.client_name} • ${p.industry}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (badgeCount) badgeCount.textContent = `${alertsCount} Action Alerts`;
+        container.innerHTML = cardsHtml || `<p class="text-emerald-600 dark:text-emerald-400 font-semibold py-4 text-center">🎉 All pitches active & closed!</p>`;
+
+        container.onclick = (e) => {
+            const btnNudge = e.target.closest('.btn-radar-nudge');
+            const btnCopy = e.target.closest('.btn-radar-copy');
+
+            if (btnNudge) {
+                const client = btnNudge.getAttribute('data-client');
+                const company = btnNudge.getAttribute('data-company');
+                const ind = btnNudge.getAttribute('data-industry');
+                const hash = btnNudge.getAttribute('data-hash');
+                copyWhatsAppScript(client, company, ind, hash);
+            } else if (btnCopy) {
+                const hash = btnCopy.getAttribute('data-hash');
+                const link = hash ? `${window.location.origin}/frontend/proposals.html?id=${hash}` : window.location.href;
+                navigator.clipboard.writeText(link).then(() => alert(`Proposal link copied to clipboard!\n${link}`));
+            }
+        };
+    }
+
     function renderAnalytics() {
         if (!loadedProposals || loadedProposals.length === 0) return;
 
         const totalDeals = loadedProposals.length;
         let totalPipeline = 0;
         let wonRevenue = 0;
-        let activePipeline = 0;
+        let weightedForecast = 0;
 
         let countGenerated = 0;
         let countViewed = 0;
         let countSigned = 0;
         let countDeclined = 0;
 
-        const industryCounts = {};
-        const macroSectorData = {
-            "Energy, Solar & Utilities": { won: 0, count: 0 },
-            "Real Estate & Property": { won: 0, count: 0 },
-            "Commerce & Retail": { won: 0, count: 0 },
-            "Professional & Legal": { won: 0, count: 0 },
-            "Health & Wellness": { won: 0, count: 0 },
-            "Tech & Services": { won: 0, count: 0 }
-        };
+        const industryData = {};
 
         loadedProposals.forEach(item => {
             const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price || 0);
@@ -724,111 +832,77 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.client_status === 'Proposal signed') {
                 countSigned++;
                 wonRevenue += numVal;
-            } else if (item.client_status === 'Proposal viewed' || item.client_status === 'Proposal sent') {
-                activePipeline += numVal;
+                weightedForecast += numVal;
+            } else if (item.client_status === 'Proposal viewed') {
+                countViewed++;
+                weightedForecast += (numVal * 0.8);
+            } else if (item.client_status === 'Proposal generated' || item.client_status === 'Proposal sent') {
+                countGenerated++;
+                weightedForecast += (numVal * 0.3);
+            } else if (item.client_status === 'Proposal declined') {
+                countDeclined++;
             }
 
-            if (item.client_status === 'Proposal generated') countGenerated++;
-            if (item.client_status === 'Proposal viewed') countViewed++;
-            if (item.client_status === 'Proposal declined') countDeclined++;
-
             const ind = item.industry || 'Other';
-            industryCounts[ind] = (industryCounts[ind] || 0) + 1;
-
-            const macro = getMacroSector(ind);
-            if (macroSectorData[macro]) {
-                macroSectorData[macro].count++;
-                if (item.client_status === 'Proposal signed') {
-                    macroSectorData[macro].won += numVal;
-                }
+            if (!industryData[ind]) {
+                industryData[ind] = { count: 0, won: 0, wonCount: 0 };
+            }
+            industryData[ind].count++;
+            if (item.client_status === 'Proposal signed') {
+                industryData[ind].won += numVal;
+                industryData[ind].wonCount++;
             }
         });
 
         const fmtZAR = (val) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(val);
 
-        // Sub-View 1: Executive Overview Cards
+        // Update Monthly Quota Progress Widget
+        const quotaProgressBar = document.getElementById('quotaProgressBar');
+        const quotaTargetLabel = document.getElementById('quotaTargetLabel');
+        const quotaPctLabel = document.getElementById('quotaPctLabel');
+
+        const quotaPct = Math.min(100, Math.round((wonRevenue / MONTHLY_QUOTA_TARGET) * 100));
+        if (quotaProgressBar) quotaProgressBar.style.width = `${quotaPct}%`;
+        if (quotaTargetLabel) quotaTargetLabel.textContent = `${fmtZAR(wonRevenue)} / R 100k`;
+        if (quotaPctLabel) quotaPctLabel.textContent = `${quotaPct}% Target Achieved`;
+
+        // Update 4 Financial KPI Summary Cards
         const statTotalPipeline = document.getElementById('statTotalPipeline');
         const statWonRevenue = document.getElementById('statWonRevenue');
-        const statActivePipeline = document.getElementById('statActivePipeline');
+        const statWeightedForecast = document.getElementById('statWeightedForecast');
         const statAvgDeal = document.getElementById('statAvgDeal');
         const statWinRateBadge = document.getElementById('statWinRateBadge');
 
         if (statTotalPipeline) statTotalPipeline.textContent = fmtZAR(totalPipeline);
         if (statWonRevenue) statWonRevenue.textContent = fmtZAR(wonRevenue);
-        if (statActivePipeline) statActivePipeline.textContent = fmtZAR(activePipeline);
+        if (statWeightedForecast) statWeightedForecast.textContent = fmtZAR(weightedForecast);
 
         const avgDeal = totalDeals > 0 ? Math.round(totalPipeline / totalDeals) : 0;
         const winRate = totalDeals > 0 ? Math.round((countSigned / totalDeals) * 100) : 0;
 
         if (statAvgDeal) statAvgDeal.textContent = fmtZAR(avgDeal);
-        if (statWinRateBadge) statWinRateBadge.textContent = `${winRate}% Win`;
+        if (statWinRateBadge) statWinRateBadge.textContent = `${winRate}% Win Rate`;
 
-        // Win/Loss Health Meter
-        const totalClosedOrDeclined = countSigned + countDeclined;
-        const winPct = totalClosedOrDeclined > 0 ? Math.round((countSigned / totalClosedOrDeclined) * 100) : 50;
-        const lossPct = totalClosedOrDeclined > 0 ? (100 - winPct) : 50;
+        // Render Action Radar
+        renderActionRadar(loadedProposals);
 
-        const ratioWinBar = document.getElementById('ratioWinBar');
-        const ratioLossBar = document.getElementById('ratioLossBar');
-        const ratioSignedLabel = document.getElementById('ratioSignedLabel');
-        const ratioDeclinedLabel = document.getElementById('ratioDeclinedLabel');
-
-        if (ratioWinBar) ratioWinBar.style.width = `${winPct}%`;
-        if (ratioLossBar) ratioLossBar.style.width = `${lossPct}%`;
-        if (ratioSignedLabel) ratioSignedLabel.textContent = `Signed: ${countSigned}`;
-        if (ratioDeclinedLabel) ratioDeclinedLabel.textContent = `Declined: ${countDeclined}`;
-
-        // Sub-View 2: Macro Sector Performance Matrix Grid & Top Sector Spotlight
-        const macroGrid = document.getElementById('macroSectorsGrid');
-        if (macroGrid) {
-            let topSector = { name: "None", won: -1 };
-            let gridHtml = '';
-
-            for (const [secName, data] of Object.entries(macroSectorData)) {
-                if (data.won > topSector.won && data.won > 0) {
-                    topSector = { name: secName, won: data.won };
-                } else if (topSector.won === -1 && data.count > 0) {
-                    topSector = { name: secName, won: data.won };
-                }
-
-                gridHtml += `
-                    <div class="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold text-black dark:text-white text-xs">${secName}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-extrabold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded">${data.count} deals</span>
-                        </div>
-                        <p class="text-base font-extrabold text-emerald-600 dark:text-emerald-400">${fmtZAR(data.won)}</p>
-                        <p class="text-[10px] text-zinc-400">Closed Revenue</p>
-                    </div>
-                `;
-            }
-            macroGrid.innerHTML = gridHtml;
-
-            const topSectorName = document.getElementById('topSectorName');
-            const topSectorValue = document.getElementById('topSectorValue');
-            if (topSectorName) topSectorName.textContent = topSector.name;
-            if (topSectorValue) topSectorValue.textContent = fmtZAR(topSector.won > -1 ? topSector.won : 0);
-        }
-
-        // Sub-View 3: Granular Industry Distribution
-        const container = document.getElementById('industryBreakdownContainer');
-        if (container) {
-            container.innerHTML = Object.entries(industryCounts).map(([ind, cnt]) => {
-                const indPct = Math.round((cnt / totalDeals) * 100);
+        // Render Industry ROI Matrix Table
+        const matrixBody = document.getElementById('industryMatrixTableBody');
+        if (matrixBody) {
+            const sortedIndustries = Object.entries(industryData).sort((a, b) => b[1].won - a[1].won);
+            matrixBody.innerHTML = sortedIndustries.map(([ind, data]) => {
+                const indWinRate = data.count > 0 ? Math.round((data.wonCount / data.count) * 100) : 0;
                 return `
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-semibold">
-                            <span class="text-black dark:text-white">${ind}</span>
-                            <span class="text-zinc-500">${cnt} deals (${indPct}%)</span>
-                        </div>
-                        <div class="w-full h-2 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                            <div class="h-full bg-zinc-700 dark:bg-zinc-300 rounded-full transition-all duration-500" style="width: ${indPct}%"></div>
-                        </div>
-                    </div>`;
+                    <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition-colors">
+                        <td class="py-2.5 font-semibold text-black dark:text-white">${ind}</td>
+                        <td class="py-2.5 text-center text-zinc-500 font-medium">${data.count} <span class="text-[10px] text-zinc-400">(${indWinRate}%)</span></td>
+                        <td class="py-2.5 text-right font-extrabold text-emerald-600 dark:text-emerald-400">${fmtZAR(data.won)}</td>
+                    </tr>
+                `;
             }).join('');
         }
 
-        // Sub-View 4: Funnel Progress Bars & Pitch Optimization Advice
+        // Render Conversion Funnel Progress Bars
         const setFunnelRow = (countId, barId, count, total) => {
             const countEl = document.getElementById(countId);
             const barEl = document.getElementById(barId);
@@ -846,11 +920,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const pitchAdviceText = document.getElementById('pitchAdviceText');
         if (pitchAdviceText) {
             if (openRate < 40) {
-                pitchAdviceText.textContent = `Current proposal open rate is low (${openRate}%). Recommend following up via WhatsApp/Email immediately after generation to ensure prospect views link.`;
+                pitchAdviceText.textContent = `Current proposal open rate is low (${openRate}%). Use the Urgent Action Radar's 1-click WhatsApp follow-up script to ensure prospects view their proposal link immediately.`;
             } else if (winRate >= 50) {
-                pitchAdviceText.textContent = `Excellent conversion velocity! Win rate is strong at ${winRate}%. Focus on expanding top-of-funnel intake volume.`;
+                pitchAdviceText.textContent = `Excellent closing velocity! Win rate is strong at ${winRate}%. Focus on generating new client intake proposals in high-value sectors.`;
             } else {
-                pitchAdviceText.textContent = `High view rate (${openRate}%) with ${winRate}% closed rate. Review ROI proposal terms or add explicit pricing packages to drive closing velocity.`;
+                pitchAdviceText.textContent = `High view rate (${openRate}%) with ${winRate}% closed rate. Review ROI proposal terms or offer quick closing discounts to drive signature velocity.`;
             }
         }
     }
