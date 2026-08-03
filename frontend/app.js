@@ -908,12 +908,26 @@ document.addEventListener('DOMContentLoaded', () => {
         let countSigned = 0;
         let countDeclined = 0;
 
+        let prioRevenue = { high: 0, medium: 0, low: 0 };
+        let prioCounts = { high: 0, medium: 0, low: 0 };
+
         const industryData = {};
 
         loadedProposals.forEach(item => {
             const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price || 0);
             const numVal = Number(dealValue);
             const prio = (item.priority || 'Medium').toLowerCase();
+
+            if (prio === 'high') {
+                prioRevenue.high += numVal;
+                prioCounts.high++;
+            } else if (prio === 'low') {
+                prioRevenue.low += numVal;
+                prioCounts.low++;
+            } else {
+                prioRevenue.medium += numVal;
+                prioCounts.medium++;
+            }
 
             // Priority multiplier adjustments (+15% for High, 0 for Medium, -10% for Low)
             let prioMod = 0;
@@ -963,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (quotaPctLabel) quotaPctLabel.textContent = `${quotaPct}% Target Achieved`;
         if (quotaTargetDisplay) quotaTargetDisplay.textContent = `Target: ${fmtZAR(monthlyQuota)} / mo`;
 
-        // Update 4 Financial KPI Summary Cards
+        // Update Financial KPI Summary Cards
         const statTotalPipeline = document.getElementById('statTotalPipeline');
         const statWonRevenue = document.getElementById('statWonRevenue');
         const statWeightedForecast = document.getElementById('statWeightedForecast');
@@ -979,6 +993,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (statAvgDeal) statAvgDeal.textContent = fmtZAR(avgDeal);
         if (statWinRateBadge) statWinRateBadge.textContent = `${winRate}% Win Rate`;
+
+        // Update Priority Breakdown Mini Ring Widget
+        const prioWidgetTotalDeals = document.getElementById('prioWidgetTotalDeals');
+        const prioWidgetTopPct = document.getElementById('prioWidgetTopPct');
+        const prioValHigh = document.getElementById('prioValHigh');
+        const prioValMed = document.getElementById('prioValMed');
+        const prioValLow = document.getElementById('prioValLow');
+        const ringPrioHigh = document.getElementById('ringPrioHigh');
+        const ringPrioMed = document.getElementById('ringPrioMed');
+        const ringPrioLow = document.getElementById('ringPrioLow');
+
+        const totalPrioVal = totalPipeline || 1;
+        const pctHigh = Math.round((prioRevenue.high / totalPrioVal) * 100);
+        const pctMed = Math.round((prioRevenue.medium / totalPrioVal) * 100);
+        const pctLow = Math.round((prioRevenue.low / totalPrioVal) * 100);
+
+        if (prioWidgetTotalDeals) prioWidgetTotalDeals.textContent = `${totalDeals} Deals`;
+        if (prioWidgetTopPct) prioWidgetTopPct.textContent = `${pctHigh}%`;
+        if (prioValHigh) prioValHigh.textContent = `${fmtZAR(prioRevenue.high)} (${pctHigh}%)`;
+        if (prioValMed) prioValMed.textContent = `${fmtZAR(prioRevenue.medium)} (${pctMed}%)`;
+        if (prioValLow) prioValLow.textContent = `${fmtZAR(prioRevenue.low)} (${pctLow}%)`;
+
+        // SVG Donut Ring Segments Calculations (circumference = 100)
+        if (ringPrioHigh) ringPrioHigh.setAttribute('stroke-dasharray', `${pctHigh}, 100`);
+        if (ringPrioMed) {
+            ringPrioMed.setAttribute('stroke-dasharray', `${pctMed}, 100`);
+            ringPrioMed.setAttribute('stroke-dashoffset', `-${pctHigh}`);
+        }
+        if (ringPrioLow) {
+            ringPrioLow.setAttribute('stroke-dasharray', `${pctLow}, 100`);
+            ringPrioLow.setAttribute('stroke-dashoffset', `-${pctHigh + pctMed}`);
+        }
 
         // Render Action Radar
         renderActionRadar(loadedProposals);
