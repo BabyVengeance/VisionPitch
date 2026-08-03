@@ -994,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statAvgDeal) statAvgDeal.textContent = fmtZAR(avgDeal);
         if (statWinRateBadge) statWinRateBadge.textContent = `${winRate}% Win Rate`;
 
-        // Update Priority Breakdown Mini Ring Widget
+        // Update Priority Breakdown Full-Width Widget
         const prioWidgetTotalDeals = document.getElementById('prioWidgetTotalDeals');
         const prioWidgetTopPct = document.getElementById('prioWidgetTopPct');
         const prioValHigh = document.getElementById('prioValHigh');
@@ -1003,6 +1003,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const ringPrioHigh = document.getElementById('ringPrioHigh');
         const ringPrioMed = document.getElementById('ringPrioMed');
         const ringPrioLow = document.getElementById('ringPrioLow');
+        const prioBarHigh = document.getElementById('prioBarHigh');
+        const prioBarMed = document.getElementById('prioBarMed');
+        const prioBarLow = document.getElementById('prioBarLow');
+        const prioCountHigh = document.getElementById('prioCountHigh');
+        const prioCountMed = document.getElementById('prioCountMed');
+        const prioCountLow = document.getElementById('prioCountLow');
+        const prioAvgHigh = document.getElementById('prioAvgHigh');
+        const prioAvgMed = document.getElementById('prioAvgMed');
+        const prioAvgLow = document.getElementById('prioAvgLow');
 
         const totalPrioVal = totalPipeline || 1;
         const pctHigh = Math.round((prioRevenue.high / totalPrioVal) * 100);
@@ -1015,7 +1024,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (prioValMed) prioValMed.textContent = `${fmtZAR(prioRevenue.medium)} (${pctMed}%)`;
         if (prioValLow) prioValLow.textContent = `${fmtZAR(prioRevenue.low)} (${pctLow}%)`;
 
-        // SVG Donut Ring Segments Calculations (circumference = 100)
+        // Progress Bars
+        if (prioBarHigh) prioBarHigh.style.width = `${pctHigh}%`;
+        if (prioBarMed) prioBarMed.style.width = `${pctMed}%`;
+        if (prioBarLow) prioBarLow.style.width = `${pctLow}%`;
+
+        // Deal Counts
+        if (prioCountHigh) prioCountHigh.textContent = `${prioCounts.high} deal${prioCounts.high !== 1 ? 's' : ''}`;
+        if (prioCountMed) prioCountMed.textContent = `${prioCounts.medium} deal${prioCounts.medium !== 1 ? 's' : ''}`;
+        if (prioCountLow) prioCountLow.textContent = `${prioCounts.low} deal${prioCounts.low !== 1 ? 's' : ''}`;
+
+        // Per-Tier Averages
+        const avgHigh = prioCounts.high > 0 ? Math.round(prioRevenue.high / prioCounts.high) : 0;
+        const avgMedVal = prioCounts.medium > 0 ? Math.round(prioRevenue.medium / prioCounts.medium) : 0;
+        const avgLow = prioCounts.low > 0 ? Math.round(prioRevenue.low / prioCounts.low) : 0;
+        if (prioAvgHigh) prioAvgHigh.textContent = `Avg ${fmtZAR(avgHigh)}`;
+        if (prioAvgMed) prioAvgMed.textContent = `Avg ${fmtZAR(avgMedVal)}`;
+        if (prioAvgLow) prioAvgLow.textContent = `Avg ${fmtZAR(avgLow)}`;
+
+        // SVG Donut Ring Segments (circumference = 100)
         if (ringPrioHigh) ringPrioHigh.setAttribute('stroke-dasharray', `${pctHigh}, 100`);
         if (ringPrioMed) {
             ringPrioMed.setAttribute('stroke-dasharray', `${pctMed}, 100`);

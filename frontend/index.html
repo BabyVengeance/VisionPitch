@@ -269,8 +269,8 @@
                 </div>
             </header>
 
-            <!-- Top Financial KPI Summary Cards (5 Cards Grid) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Top Financial KPI Summary Cards (4 Cards Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Pipeline Value</p>
@@ -303,49 +303,6 @@
                             Win</span>
                     </div>
                     <p class="text-[10px] text-zinc-500 mt-1 font-medium">Mean deal size & closing ratio</p>
-                </div>
-                <!-- Priority Breakdown Mini Ring Widget -->
-                <div
-                    class="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm flex flex-col justify-between">
-                    <div class="flex justify-between items-center">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Priority Breakdown</p>
-                        <span id="prioWidgetTotalDeals"
-                            class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800">0 Deals</span>
-                    </div>
-                    
-                    <div class="flex items-center gap-3 my-1">
-                        <div class="relative w-11 h-11 flex-shrink-0 flex items-center justify-center">
-                            <svg class="w-11 h-11 transform -rotate-90" viewBox="0 0 36 36">
-                                <path class="text-zinc-200 dark:text-zinc-800" stroke-width="3.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioHigh" class="text-red-500 transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3.8" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioMed" class="text-blue-500 transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3.8" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioLow" class="text-zinc-400 transition-all duration-500" stroke-dasharray="0, 100" stroke-width="3.8" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            </svg>
-                            <span id="prioWidgetTopPct" class="absolute text-[9px] font-extrabold text-black dark:text-white">0%</span>
-                        </div>
-
-                        <div class="flex-1 text-[10px] space-y-0.5">
-                            <div class="flex justify-between items-center">
-                                <span class="flex items-center gap-1 text-red-600 dark:text-red-400 font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> High
-                                </span>
-                                <span id="prioValHigh" class="font-extrabold text-black dark:text-white">R0 (0%)</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Med
-                                </span>
-                                <span id="prioValMed" class="font-extrabold text-black dark:text-white">R0 (0%)</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="flex items-center gap-1 text-zinc-500 dark:text-zinc-400 font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> Low
-                                </span>
-                                <span id="prioValLow" class="font-extrabold text-black dark:text-white">R0 (0%)</span>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-zinc-500 font-medium">Pipeline revenue share by tier</p>
                 </div>
             </div>
 
@@ -466,6 +423,89 @@
                         Velocity Insight</span>
                     <p id="pitchAdviceText" class="text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
                         Analyzing pitch funnel performance...</p>
+                </div>
+            </div>
+
+            <!-- Pipeline Priority Breakdown Widget (Full Width) -->
+            <div
+                class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-3 mb-5">
+                    <div>
+                        <h3 class="text-sm font-bold text-black dark:text-white">Pipeline Priority Breakdown</h3>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Revenue distribution across priority tiers</p>
+                    </div>
+                    <span id="prioWidgetTotalDeals"
+                        class="text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800">0 Deals</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <!-- Donut Ring -->
+                    <div class="lg:col-span-3 flex justify-center">
+                        <div class="relative w-32 h-32 flex items-center justify-center">
+                            <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-zinc-200 dark:text-zinc-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioHigh" class="text-red-500 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioMed" class="text-blue-500 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioLow" class="text-zinc-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="absolute flex flex-col items-center">
+                                <span id="prioWidgetTopPct" class="text-lg font-extrabold text-black dark:text-white">0%</span>
+                                <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">High</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tier Bars -->
+                    <div class="lg:col-span-9 space-y-4">
+                        <!-- High -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="flex items-center gap-2 text-sm font-bold text-red-600 dark:text-red-400">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> High Priority
+                                </span>
+                                <span id="prioValHigh" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                            </div>
+                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                                <div id="prioBarHigh" class="h-full bg-red-500 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
+                                <span id="prioCountHigh">0 deals</span>
+                                <span id="prioAvgHigh">Avg R 0</span>
+                            </div>
+                        </div>
+                        <!-- Medium -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Medium Priority
+                                </span>
+                                <span id="prioValMed" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                            </div>
+                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                                <div id="prioBarMed" class="h-full bg-blue-500 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
+                                <span id="prioCountMed">0 deals</span>
+                                <span id="prioAvgMed">Avg R 0</span>
+                            </div>
+                        </div>
+                        <!-- Low -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-baseline">
+                                <span class="flex items-center gap-2 text-sm font-bold text-zinc-500 dark:text-zinc-400">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-zinc-400"></span> Low Priority
+                                </span>
+                                <span id="prioValLow" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                            </div>
+                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                                <div id="prioBarLow" class="h-full bg-zinc-400 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
+                                <span id="prioCountLow">0 deals</span>
+                                <span id="prioAvgLow">Avg R 0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
