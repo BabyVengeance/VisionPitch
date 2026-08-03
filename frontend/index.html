@@ -207,174 +207,157 @@
             </div>
         </section>
 
-        <!-- Sales Analytics & Statistics SPA Section -->
+        <!-- Sales Command Center & Revenue Intelligence SPA Section -->
         <section id="analyticsSection" class="hidden space-y-6">
-            <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+            <!-- Header & Monthly Quota Attainment Widget -->
+            <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Performance Analytics</h1>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Real-time conversion metrics, macro sector intelligence, and deal velocity analytics.</p>
+                    <h1 class="text-2xl font-bold tracking-tight text-black dark:text-white">Sales Command Center</h1>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Real-time action alerts, weighted revenue forecasting, and industry contract ROI.</p>
                 </div>
 
-                <!-- Sub-Tab Navigation Bar -->
-                <div class="flex flex-wrap gap-1.5 bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold">
-                    <button type="button" id="tabAnalyticsOverview" data-tab="overview" class="analytics-subtab-btn px-3 py-1.5 rounded-lg bg-black dark:bg-white text-white dark:text-black font-bold transition-all shadow-sm">
-                        Overview
-                    </button>
-                    <button type="button" id="tabAnalyticsSectors" data-tab="sectors" class="analytics-subtab-btn px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all">
-                        Macro Sectors
-                    </button>
-                    <button type="button" id="tabAnalyticsIndustries" data-tab="industries" class="analytics-subtab-btn px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all">
-                        Niche Industries
-                    </button>
-                    <button type="button" id="tabAnalyticsFunnel" data-tab="funnel" class="analytics-subtab-btn px-3 py-1.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all">
-                        Funnel & Stages
-                    </button>
+                <!-- Monthly Quota Attainment Widget -->
+                <div class="bg-zinc-50 dark:bg-zinc-950 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-900 w-full lg:w-80 space-y-2 shadow-sm">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold uppercase tracking-wider text-zinc-400">Monthly Quota</span>
+                        <span id="quotaTargetLabel" class="font-extrabold text-emerald-600 dark:text-emerald-400">R 0 / R 100k</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                        <div id="quotaProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
+                        <span id="quotaPctLabel">0% Target</span>
+                        <span>Target: R100,000 / mo</span>
+                    </div>
                 </div>
             </header>
 
-            <!-- SUB-VIEW 1: EXECUTIVE OVERVIEW -->
-            <div id="analyticsViewOverview" class="analytics-subview space-y-6">
-                <!-- Financial KPI Summary Cards (4 Cards Grid) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Pipeline Value</p>
-                        <p id="statTotalPipeline" class="text-2xl font-extrabold text-black dark:text-white mt-1.5">R 0</p>
-                        <p class="text-[10px] text-zinc-500 mt-1 font-medium">Cumulative potential contract value</p>
-                    </div>
-                    <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-l-4 border-l-emerald-500">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Won Revenue (Signed)</p>
-                        <p id="statWonRevenue" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">R 0</p>
-                        <p class="text-[10px] text-zinc-500 mt-1 font-medium">Closed contract revenue</p>
-                    </div>
-                    <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-l-4 border-l-blue-500">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Active Pipeline Value</p>
-                        <p id="statActivePipeline" class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5">R 0</p>
-                        <p class="text-[10px] text-zinc-500 mt-1 font-medium">Proposals viewed or sent</p>
-                    </div>
-                    <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Avg Deal Size & Win Rate</p>
-                        <div class="flex items-baseline gap-2 mt-1.5">
-                            <span id="statAvgDeal" class="text-xl font-extrabold text-black dark:text-white">R 0</span>
-                            <span id="statWinRateBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">0% Win</span>
-                        </div>
-                        <p class="text-[10px] text-zinc-500 mt-1 font-medium">Mean contract & win ratio</p>
-                    </div>
+            <!-- Top Financial KPI Summary Cards (4 Cards Grid) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Pipeline Value</p>
+                    <p id="statTotalPipeline" class="text-2xl font-extrabold text-black dark:text-white mt-1.5">R 0</p>
+                    <p class="text-[10px] text-zinc-500 mt-1 font-medium">Cumulative gross potential</p>
                 </div>
-
-                <!-- Win vs Loss Health Index & Top Sector Card -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-black dark:text-white">Win / Loss Ratio</h3>
-                            <span class="text-xs text-zinc-400 font-medium">Signed Contracts vs. Declined Proposals</span>
-                        </div>
-                        <div class="flex h-4 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-900">
-                            <div id="ratioWinBar" class="bg-emerald-500 transition-all duration-500" style="width: 50%"></div>
-                            <div id="ratioLossBar" class="bg-red-500 transition-all duration-500" style="width: 50%"></div>
-                        </div>
-                        <div class="flex justify-between text-xs font-bold pt-1">
-                            <span id="ratioSignedLabel" class="text-emerald-600 dark:text-emerald-400">Signed: 0</span>
-                            <span id="ratioDeclinedLabel" class="text-red-600 dark:text-red-400">Declined: 0</span>
-                        </div>
+                <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-l-4 border-l-emerald-500">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Closed Won Revenue</p>
+                    <p id="statWonRevenue" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">R 0</p>
+                    <p class="text-[10px] text-zinc-500 mt-1 font-medium">Signed contract cash</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm border-l-4 border-l-blue-500">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Weighted Forecast</p>
+                    <p id="statWeightedForecast" class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1.5">R 0</p>
+                    <p class="text-[10px] text-zinc-500 mt-1 font-medium">Probability-adjusted expected cash</p>
+                </div>
+                <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Win Rate & Avg Contract</p>
+                    <div class="flex items-baseline gap-2 mt-1.5">
+                        <span id="statAvgDeal" class="text-xl font-extrabold text-black dark:text-white">R 0</span>
+                        <span id="statWinRateBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">0% Win</span>
                     </div>
+                    <p class="text-[10px] text-zinc-500 mt-1 font-medium">Mean deal size & closing ratio</p>
+                </div>
+            </div>
 
-                    <!-- Top Sector Spotlight Card -->
-                    <div class="bg-gradient-to-br from-zinc-900 to-black text-white p-6 rounded-xl border border-zinc-800 shadow-sm flex flex-col justify-between space-y-4">
+            <!-- Main Command Center Grid: Urgent Action Radar & Industry ROI Matrix -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Panel 1: Urgent Sales Action Radar (Left / 7 cols) -->
+                <div class="lg:col-span-7 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-900 pb-3">
                         <div>
-                            <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Top Revenue Sector</span>
-                            <h4 id="topSectorName" class="text-lg font-bold mt-3 text-white">Calculating...</h4>
-                            <p id="topSectorValue" class="text-2xl font-extrabold text-emerald-400 mt-1">R 0</p>
+                            <h3 class="text-sm font-bold text-black dark:text-white flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                Urgent Sales Action Radar
+                            </h3>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">High-priority pitches needing rep intervention & follow-up.</p>
                         </div>
-                        <p class="text-[11px] text-zinc-400 font-medium">Highest cumulative contract revenue by sector.</p>
+                        <span id="actionRadarBadgeCount" class="px-2.5 py-1 text-[10px] font-extrabold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded-full">0 Alerts</span>
+                    </div>
+
+                    <div id="actionRadarContainer" class="space-y-3 max-h-[380px] overflow-y-auto pr-1 text-xs">
+                        <p class="text-zinc-400 italic">Scanning pipeline for stale pitches...</p>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Industry Contract ROI & Revenue Matrix (Right / 5 cols) -->
+                <div class="lg:col-span-5 bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
+                    <div class="border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                        <h3 class="text-sm font-bold text-black dark:text-white">Industry Contract ROI Matrix</h3>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Ranked revenue performance per sector.</p>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="text-zinc-400 font-bold uppercase text-[10px] border-b border-zinc-200 dark:border-zinc-900">
+                                    <th class="pb-2">Sector</th>
+                                    <th class="pb-2 text-center">Deals</th>
+                                    <th class="pb-2 text-right">Closed Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="industryMatrixTableBody" class="divide-y divide-zinc-200/60 dark:divide-zinc-900">
+                                <tr>
+                                    <td colspan="3" class="py-4 text-center text-zinc-400 italic">Loading industry ROI matrix...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- SUB-VIEW 2: MACRO SECTOR INTELLIGENCE -->
-            <div id="analyticsViewSectors" class="analytics-subview hidden space-y-6">
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
-                    <div>
-                        <h3 class="text-md font-bold text-black dark:text-white">Macro Sector Performance Matrix</h3>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Categorized breakdown across 6 primary business verticals.</p>
+            <!-- Bottom Conversion Funnel Progress & Pitch Advice -->
+            <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-5">
+                <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                    <h3 class="text-sm font-bold text-black dark:text-white">Proposal Pitch Conversion Funnel</h3>
+                    <span class="text-xs text-zinc-400 font-medium">Stage-by-Stage Pitch Progress</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-bold">
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-black dark:text-white uppercase">1. Generated</span>
+                            <span id="funnelGeneratedCount" class="text-zinc-500">0 deals</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="funnelGeneratedBar" class="h-full bg-black dark:bg-white transition-all duration-500" style="width: 100%"></div>
+                        </div>
                     </div>
-                    <div id="macroSectorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-                        <!-- Populated via JS -->
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-blue-600 dark:text-blue-400 uppercase">2. Viewed</span>
+                            <span id="funnelViewedCount" class="text-zinc-500">0 deals</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="funnelViewedBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-emerald-600 dark:text-emerald-400 uppercase">3. Signed (Won)</span>
+                            <span id="funnelSignedCount" class="text-zinc-500">0 deals</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="funnelSignedBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <span class="text-red-600 dark:text-red-400 uppercase">4. Declined</span>
+                            <span id="funnelDeclinedCount" class="text-zinc-500">0 deals</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                            <div id="funnelDeclinedBar" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- SUB-VIEW 3: NICHE INDUSTRY BREAKDOWN -->
-            <div id="analyticsViewIndustries" class="analytics-subview hidden space-y-6">
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-md font-bold text-black dark:text-white">Granular Industry Sector Distribution</h3>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Click any industry to filter client proposals.</p>
-                        </div>
-                        <button type="button" id="clearIndustryFilterBtn" class="hidden px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-                            Clear Filter
-                        </button>
-                    </div>
-                    <div id="industryBreakdownContainer" class="space-y-3 pt-1 text-xs">
-                        <p class="text-zinc-400">Loading industry sectors...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB-VIEW 4: CONVERSION FUNNEL & STAGE ANALYTICS -->
-            <div id="analyticsViewFunnel" class="analytics-subview hidden space-y-6">
-                <div class="bg-zinc-50 dark:bg-zinc-950 p-6 rounded-xl border border-zinc-200 dark:border-zinc-900 shadow-sm space-y-6">
-                    <h3 class="text-lg font-bold text-black dark:text-white border-b border-zinc-200 dark:border-zinc-900 pb-3">
-                        Stage-by-Stage Pitch Funnel & Drop-Off
-                    </h3>
-
-                    <div class="space-y-5">
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between text-xs font-bold">
-                                <span class="text-black dark:text-white uppercase">1. Proposals Generated</span>
-                                <span id="funnelGeneratedCount" class="text-zinc-500">0 deals (100%)</span>
-                            </div>
-                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="funnelGeneratedBar" class="h-full bg-black dark:bg-white transition-all duration-500" style="width: 100%"></div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between text-xs font-bold">
-                                <span class="text-blue-600 dark:text-blue-400 uppercase">2. Proposals Viewed / Opened</span>
-                                <span id="funnelViewedCount" class="text-zinc-500">0 deals (0%)</span>
-                            </div>
-                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="funnelViewedBar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between text-xs font-bold">
-                                <span class="text-emerald-600 dark:text-emerald-400 uppercase">3. Closed / Signed (Won)</span>
-                                <span id="funnelSignedCount" class="text-zinc-500">0 deals (0%)</span>
-                            </div>
-                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="funnelSignedBar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between text-xs font-bold">
-                                <span class="text-red-600 dark:text-red-400 uppercase">4. Declined (Lost)</span>
-                                <span id="funnelDeclinedCount" class="text-zinc-500">0 deals (0%)</span>
-                            </div>
-                            <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="funnelDeclinedBar" class="h-full bg-red-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pitch Optimization Advice Box -->
-                    <div id="pitchAdviceContainer" class="p-4 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
-                        <span class="font-bold text-black dark:text-white uppercase tracking-wider">Pitch Optimization Insight</span>
-                        <p id="pitchAdviceText" class="text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">Analyzing pitch funnel performance...</p>
-                    </div>
+                <!-- Pitch Advice Container -->
+                <div id="pitchAdviceContainer" class="p-3.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
+                    <span class="font-bold text-black dark:text-white uppercase tracking-wider text-[10px]">Closing Velocity Insight</span>
+                    <p id="pitchAdviceText" class="text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">Analyzing pitch funnel performance...</p>
                 </div>
             </div>
         </section>
