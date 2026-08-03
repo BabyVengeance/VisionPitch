@@ -692,7 +692,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navClients) navClients.addEventListener('click', (e) => { e.preventDefault(); switchTab('clients'); });
 
     // Sales Command Center Engine: Quota Attainment, Weighted Forecast & Action Radar
-    const MONTHLY_QUOTA_TARGET = 100000; // R100,000 monthly sales quota target
+    function getMonthlyQuota() {
+        const val = localStorage.getItem('visionpitch_monthly_quota');
+        return val ? Math.max(10000, Number(val)) : 100000;
+    }
+
+    const editQuotaTargetBtn = document.getElementById('editQuotaTargetBtn');
+    if (editQuotaTargetBtn) {
+        editQuotaTargetBtn.addEventListener('click', () => {
+            const current = getMonthlyQuota();
+            const input = prompt(`Set Monthly Sales Quota Target (ZAR):\n\nCurrent Target: R ${current.toLocaleString()}`, current);
+            if (input !== null) {
+                const parsed = parseInt(input.replace(/[^0-9]/g, ''), 10);
+                if (!isNaN(parsed) && parsed > 0) {
+                    localStorage.setItem('visionpitch_monthly_quota', parsed);
+                    renderAnalytics();
+                } else if (input.trim() !== '') {
+                    alert('Please enter a valid numeric target amount in ZAR.');
+                }
+            }
+        });
+    }
 
     function copyWhatsAppScript(clientName, companyName, industry, proposalHash) {
         const link = proposalHash ? `${window.location.origin}/frontend/proposals.html?id=${proposalHash}` : window.location.href;
@@ -814,6 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAnalytics() {
         if (!loadedProposals || loadedProposals.length === 0) return;
 
+        const monthlyQuota = getMonthlyQuota();
         const totalDeals = loadedProposals.length;
         let totalPipeline = 0;
         let wonRevenue = 0;
@@ -863,11 +884,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const quotaProgressBar = document.getElementById('quotaProgressBar');
         const quotaTargetLabel = document.getElementById('quotaTargetLabel');
         const quotaPctLabel = document.getElementById('quotaPctLabel');
+        const quotaTargetDisplay = document.getElementById('quotaTargetDisplay');
 
-        const quotaPct = Math.min(100, Math.round((wonRevenue / MONTHLY_QUOTA_TARGET) * 100));
+        const quotaPct = Math.min(100, Math.round((wonRevenue / monthlyQuota) * 100));
         if (quotaProgressBar) quotaProgressBar.style.width = `${quotaPct}%`;
-        if (quotaTargetLabel) quotaTargetLabel.textContent = `${fmtZAR(wonRevenue)} / R 100k`;
+        if (quotaTargetLabel) quotaTargetLabel.textContent = `${fmtZAR(wonRevenue)} / R ${Math.round(monthlyQuota / 1000)}k`;
         if (quotaPctLabel) quotaPctLabel.textContent = `${quotaPct}% Target Achieved`;
+        if (quotaTargetDisplay) quotaTargetDisplay.textContent = `Target: ${fmtZAR(monthlyQuota)} / mo`;
 
         // Update 4 Financial KPI Summary Cards
         const statTotalPipeline = document.getElementById('statTotalPipeline');
@@ -889,20 +912,37 @@ document.addEventListener('DOMContentLoaded', () => {
         // Render Action Radar
         renderActionRadar(loadedProposals);
 
-        // Render Industry ROI Matrix Table
+        // Render Industry ROI Matrix Table with Click-to-Filter
         const matrixBody = document.getElementById('industryMatrixTableBody');
         if (matrixBody) {
             const sortedIndustries = Object.entries(industryData).sort((a, b) => b[1].won - a[1].won);
             matrixBody.innerHTML = sortedIndustries.map(([ind, data]) => {
                 const indWinRate = data.count > 0 ? Math.round((data.wonCount / data.count) * 100) : 0;
                 return `
-                    <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50 transition-colors">
-                        <td class="py-2.5 font-semibold text-black dark:text-white">${ind}</td>
+                    <tr data-industry="${ind}" class="industry-matrix-row cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-zinc-900 transition-colors group" title="Click to view clients in ${ind}">
+                        <td class="py-2.5 font-semibold text-black dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                            <span>${ind}</span>
+                            <svg class="w-3 h-3 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </td>
                         <td class="py-2.5 text-center text-zinc-500 font-medium">${data.count} <span class="text-[10px] text-zinc-400">(${indWinRate}%)</span></td>
                         <td class="py-2.5 text-right font-extrabold text-emerald-600 dark:text-emerald-400">${fmtZAR(data.won)}</td>
                     </tr>
                 `;
             }).join('');
+
+            matrixBody.onclick = (e) => {
+                const row = e.target.closest('.industry-matrix-row');
+                if (row) {
+                    const ind = row.getAttribute('data-industry');
+                    if (ind) {
+                        switchTab('clients');
+                        if (clientSearchInput) {
+                            clientSearchInput.value = ind;
+                            renderClientDirectory();
+                        }
+                    }
+                }
+            };
         }
 
         // Render Conversion Funnel Progress Bars
@@ -944,7 +984,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedStatus = clientStatusFilter?.value || 'All';
 
         const filtered = loadedProposals.filter(item => {
-            const matchesQuery = (item.client_name || '').toLowerCase().includes(query) || (item.company_name || '').toLowerCase().includes(query);
+            const matchesQuery = (item.client_name || '').toLowerCase().includes(query) ||
+                                 (item.company_name || '').toLowerCase().includes(query) ||
+                                 (item.industry || '').toLowerCase().includes(query);
             const matchesStatus = selectedStatus === 'All' || item.client_status === selectedStatus;
             return matchesQuery && matchesStatus;
         });
