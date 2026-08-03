@@ -786,19 +786,30 @@ document.addEventListener('DOMContentLoaded', () => {
         let alertsCount = 0;
         let cardsHtml = '';
 
-        proposals.forEach(p => {
+        // Sort proposals so High priority items float to top of Radar
+        const sortedProposals = [...proposals].sort((a, b) => {
+            const rankA = getPriorityRank(a.priority);
+            const rankB = getPriorityRank(b.priority);
+            return rankB - rankA;
+        });
+
+        sortedProposals.forEach(p => {
             const val = (p.client_status === 'Proposal signed' && p.final_price) ? p.final_price : (p.budget || p.final_price || 0);
             const fmtVal = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 }).format(val);
+            const priorityBadge = getPriorityBadgeHTML(p.priority);
 
             if (p.client_status === 'Proposal viewed') {
                 alertsCount++;
                 cardsHtml += `
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-amber-300 dark:border-amber-500/30 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 rounded border border-amber-300 dark:border-amber-800 flex items-center gap-1">
-                                <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                At-Risk Pitch (Viewed)
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 rounded border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    At-Risk Pitch (Viewed)
+                                </span>
+                                ${priorityBadge}
+                            </div>
                             <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
                         </div>
                         <div class="flex justify-between items-baseline">
@@ -808,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <button type="button" data-action="whatsapp-nudge" data-client="${p.client_name}" data-company="${p.company_name}" data-industry="${p.industry}" data-hash="${p.proposal_hash || ''}"
                                 class="btn-radar-nudge px-2.5 py-1 text-[10px] font-bold rounded bg-amber-500 hover:bg-amber-600 text-black transition-colors flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z"/></svg>
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z"/></svg>
                                 WhatsApp Follow-Up
                             </button>
                         </div>
@@ -819,10 +830,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardsHtml += `
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-blue-200 dark:border-blue-900/50 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-400 rounded border border-blue-300 dark:border-blue-800 flex items-center gap-1">
-                                <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                Unopened Link
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-400 rounded border border-blue-300 dark:border-blue-800 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    Unopened Link
+                                </span>
+                                ${priorityBadge}
+                            </div>
                             <span class="font-bold text-black dark:text-white text-xs">${fmtVal}</span>
                         </div>
                         <div class="flex justify-between items-baseline">
@@ -841,10 +855,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardsHtml += `
                     <div class="p-3.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/50 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between">
-                            <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 rounded border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                                <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                Closed Won
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 text-[9px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 rounded border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    Closed Won
+                                </span>
+                                ${priorityBadge}
+                            </div>
                             <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">${fmtVal}</span>
                         </div>
                         <div>
@@ -896,6 +913,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadedProposals.forEach(item => {
             const dealValue = (item.client_status === 'Proposal signed' && item.final_price) ? item.final_price : (item.budget || item.final_price || 0);
             const numVal = Number(dealValue);
+            const prio = (item.priority || 'Medium').toLowerCase();
+
+            // Priority multiplier adjustments (+15% for High, 0 for Medium, -10% for Low)
+            let prioMod = 0;
+            if (prio === 'high') prioMod = 0.15;
+            else if (prio === 'low') prioMod = -0.10;
 
             totalPipeline += numVal;
 
@@ -905,10 +928,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 weightedForecast += numVal;
             } else if (item.client_status === 'Proposal viewed') {
                 countViewed++;
-                weightedForecast += (numVal * 0.8);
+                const prob = Math.min(1.0, Math.max(0.05, 0.8 + prioMod));
+                weightedForecast += (numVal * prob);
             } else if (item.client_status === 'Proposal generated' || item.client_status === 'Proposal sent') {
                 countGenerated++;
-                weightedForecast += (numVal * 0.3);
+                const prob = Math.min(1.0, Math.max(0.05, 0.3 + prioMod));
+                weightedForecast += (numVal * prob);
             } else if (item.client_status === 'Proposal declined') {
                 countDeclined++;
             }
@@ -1021,6 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Client Directory Search & Filtering
     const clientSearchInput = document.getElementById('clientSearchInput');
     const clientStatusFilter = document.getElementById('clientStatusFilter');
+    const clientPriorityFilter = document.getElementById('clientPriorityFilter');
     const clientsDirectoryTableBody = document.getElementById('clientsDirectoryTableBody');
 
     function renderClientDirectory() {
@@ -1028,13 +1054,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const query = (clientSearchInput?.value || '').toLowerCase().trim();
         const selectedStatus = clientStatusFilter?.value || 'All';
+        const selectedPriority = clientPriorityFilter?.value || 'All';
 
         const filtered = loadedProposals.filter(item => {
             const matchesQuery = (item.client_name || '').toLowerCase().includes(query) ||
                                  (item.company_name || '').toLowerCase().includes(query) ||
                                  (item.industry || '').toLowerCase().includes(query);
             const matchesStatus = selectedStatus === 'All' || item.client_status === selectedStatus;
-            return matchesQuery && matchesStatus;
+            const matchesPriority = selectedPriority === 'All' || (item.priority || 'Medium').toLowerCase() === selectedPriority.toLowerCase();
+            return matchesQuery && matchesStatus && matchesPriority;
         });
 
         if (filtered.length === 0) {
@@ -1056,6 +1084,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.client_status === 'Proposal signed') statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Proposal signed</span>`;
             if (item.client_status === 'Proposal declined') statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-bold bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">Proposal declined</span>`;
 
+            const priorityBadge = getPriorityBadgeHTML(item.priority);
+
             return `
                 <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-900/40 transition-colors">
                     <td class="px-6 py-4">
@@ -1067,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">${budgetFormatted}</p>
                     </td>
                     <td class="px-6 py-4 text-xs font-medium">
-                        <span class="inline-block px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold">Active Record</span>
+                        ${priorityBadge}
                     </td>
                     <td class="px-6 py-4">${statusBadge}</td>
                     <td class="px-6 py-4 text-right space-x-2">
@@ -1081,6 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (clientSearchInput) clientSearchInput.addEventListener('input', renderClientDirectory);
     if (clientStatusFilter) clientStatusFilter.addEventListener('change', renderClientDirectory);
+    if (clientPriorityFilter) clientPriorityFilter.addEventListener('change', renderClientDirectory);
 
     function renderDrawerSocialBadges(websiteUrl, socialUrlsStr) {
         const container = document.getElementById('drawerSocialBadges');
@@ -1155,10 +1186,20 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDrawerSocialBadges(client.website_url, client.social_media_urls);
         
         const statusSelect = document.getElementById('drawerStatusSelect');
-        statusSelect.value = client.client_status;
-        statusSelect.onchange = function() {
-            handleStatusChange(clientId, statusSelect.value, statusSelect);
-        };
+        if (statusSelect) {
+            statusSelect.value = client.client_status;
+            statusSelect.onchange = function() {
+                handleStatusChange(clientId, statusSelect.value, statusSelect);
+            };
+        }
+
+        const prioritySelect = document.getElementById('drawerPrioritySelect');
+        if (prioritySelect) {
+            prioritySelect.value = client.priority || 'Medium';
+            prioritySelect.onchange = function() {
+                handlePriorityChange(clientId, prioritySelect.value);
+            };
+        }
 
         const linkContainer = document.getElementById('drawerProposalLinkContainer');
         linkContainer.innerHTML = client.proposal_hash ? `
