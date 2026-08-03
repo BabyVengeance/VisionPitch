@@ -1,6 +1,170 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = "https://visionpitch.onrender.com";
 
+    // Industry Combobox & Persistence Management
+    const DEFAULT_INDUSTRIES = [
+        "Real Estate & Property Development",
+        "E-Commerce & Online Retail",
+        "Solar, Renewable Energy & EPC",
+        "Healthcare, Medical & Dental",
+        "Legal Services & Law Firms",
+        "Financial Services, Accounting & Insurance",
+        "Construction, Contracting & Civil Engineering",
+        "Hospitality, Restaurants & Tourism",
+        "Security & Asset Protection Services",
+        "Automotive & Transportation",
+        "Fitness, Wellness & Spas",
+        "Education, Training & E-Learning",
+        "Logistics, Warehousing & Supply Chain",
+        "Software, SaaS & Technology",
+        "Professional & Business Consulting",
+        "Agriculture, Farming & Agribusiness",
+        "Cleaning & Facilities Management",
+        "Entertainment, Events & Media",
+        "Manufacturing & Industrial Production",
+        "Architecture & Interior Design",
+        "Recruitment & HR Staffing",
+        "Beauty, Salon & Aesthetics"
+    ];
+
+    function getCustomIndustries() {
+        try {
+            const stored = localStorage.getItem('vp_custom_industries');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCustomIndustry(newIndustry) {
+        const custom = getCustomIndustries();
+        if (!custom.includes(newIndustry)) {
+            custom.push(newIndustry);
+            localStorage.setItem('vp_custom_industries', JSON.stringify(custom));
+        }
+    }
+
+    function initIndustryCombobox() {
+        const hiddenInput = document.getElementById('intakeIndustry');
+        const searchInput = document.getElementById('intakeIndustrySearch');
+        const dropdown = document.getElementById('intakeIndustryDropdown');
+        const optionsList = document.getElementById('industryOptionsList');
+
+        if (!hiddenInput || !searchInput || !dropdown || !optionsList) return;
+
+        let dbIndustries = [];
+
+        function getActiveIndustriesList() {
+            const custom = getCustomIndustries();
+            const set = new Set([...DEFAULT_INDUSTRIES, ...custom, ...dbIndustries]);
+            return Array.from(set).sort((a, b) => a.localeCompare(b));
+        }
+
+        function renderOptions(filter = '') {
+            const list = getActiveIndustriesList();
+            const query = filter.trim().toLowerCase();
+
+            const matches = query
+                ? list.filter(ind => ind.toLowerCase().includes(query))
+                : list;
+
+            let html = '';
+            const exactMatchExists = list.some(ind => ind.toLowerCase() === query);
+
+            if (query && !exactMatchExists) {
+                const rawTyped = filter.trim();
+                html += `
+                    <div data-action="add-custom" data-value="${rawTyped.replace(/"/g, '&quot;')}" 
+                        class="combobox-item px-3 py-2 text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add "${rawTyped}" as New Industry
+                    </div>
+                `;
+            }
+
+            if (matches.length === 0 && !query) {
+                html += `<div class="px-3 py-2 text-zinc-400 italic">No industries available</div>`;
+            } else {
+                matches.forEach(ind => {
+                    const isSelected = hiddenInput.value === ind;
+                    html += `
+                        <div data-action="select" data-value="${ind.replace(/"/g, '&quot;')}" 
+                            class="combobox-item px-3 py-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white flex items-center justify-between ${isSelected ? 'font-bold bg-zinc-100/50 dark:bg-zinc-800/50' : ''}">
+                            <span>${ind}</span>
+                            ${isSelected ? '<svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            optionsList.innerHTML = html;
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectIndustry(val) {
+            hiddenInput.value = val;
+            searchInput.value = val;
+            dropdown.classList.add('hidden');
+        }
+
+        function handleAddCustom(val) {
+            saveCustomIndustry(val);
+            selectIndustry(val);
+        }
+
+        searchInput.addEventListener('focus', () => {
+            renderOptions(searchInput.value);
+        });
+
+        searchInput.addEventListener('input', () => {
+            if (hiddenInput.value !== searchInput.value) {
+                hiddenInput.value = searchInput.value;
+            }
+            renderOptions(searchInput.value);
+        });
+
+        optionsList.addEventListener('click', (e) => {
+            const item = e.target.closest('.combobox-item');
+            if (!item) return;
+
+            const action = item.getAttribute('data-action');
+            const val = item.getAttribute('data-value');
+
+            if (action === 'add-custom') {
+                handleAddCustom(val);
+            } else if (action === 'select') {
+                selectIndustry(val);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('industryComboboxContainer');
+            if (container && !container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const firstItem = optionsList.querySelector('.combobox-item');
+                if (firstItem && !dropdown.classList.contains('hidden')) {
+                    e.preventDefault();
+                    firstItem.click();
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        window.updateComboboxDbIndustries = function(proposals) {
+            if (Array.isArray(proposals)) {
+                dbIndustries = proposals.map(p => p.industry).filter(Boolean);
+            }
+        };
+    }
+
+    initIndustryCombobox();
+
     // Standard Login Logic
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -83,11 +247,158 @@ document.addEventListener('DOMContentLoaded', () => {
     const intakeForm = document.getElementById('intakeForm');
     const valError = document.getElementById('validationError');
 
+    const addSocialLinkBtn = document.getElementById('addSocialLinkBtn');
+    const additionalSocialContainer = document.getElementById('additionalSocialContainer');
+    const activeSocialInputsContainer = document.getElementById('activeSocialInputsContainer');
+    const socialPlatformSelectors = document.getElementById('socialPlatformSelectors');
+
+    // Automatically prepends https:// if user omits protocol
+    function ensureHttpProtocol(url) {
+        if (!url) return '';
+        const trimmed = url.trim();
+        if (!trimmed) return '';
+        if (/^https?:\/\//i.test(trimmed)) {
+            return trimmed;
+        }
+        return `https://${trimmed}`;
+    }
+
+    function attachProtocolFormatter(inputEl) {
+        if (!inputEl) return;
+        inputEl.addEventListener('blur', () => {
+            if (inputEl.value.trim()) {
+                inputEl.value = ensureHttpProtocol(inputEl.value);
+            }
+        });
+    }
+
+    // Attach blur protocol formatters to static website field
+    attachProtocolFormatter(document.getElementById('intakeWebsiteUrl'));
+
+    const PLATFORM_CONFIG = {
+        instagram: {
+            name: "Instagram",
+            placeholder: "https://instagram.com/profile",
+            icon: `<svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`
+        },
+        facebook: {
+            name: "Facebook",
+            placeholder: "https://facebook.com/page",
+            icon: `<svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`
+        },
+        linkedin: {
+            name: "LinkedIn",
+            placeholder: "https://linkedin.com/in/profile",
+            icon: `<svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>`
+        },
+        tiktok: {
+            name: "TikTok",
+            placeholder: "https://tiktok.com/@profile",
+            icon: `<svg class="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.34a6.33 6.33 0 0 0-1-.08 6.26 6.26 0 0 0-6.25 6.25A6.26 6.26 0 0 0 9.34 21.8c3.3 0 6.06-2.54 6.24-5.81V9.28a8.28 8.28 0 0 0 4.01 1.03V6.86a4.78 4.78 0 0 1-.01-.17z"/></svg>`
+        },
+        youtube: {
+            name: "YouTube",
+            placeholder: "https://youtube.com/@channel",
+            icon: `<svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
+        }
+    };
+
+    function togglePlatformInput(key, btnEl) {
+        if (!activeSocialInputsContainer) return;
+
+        const existingRow = activeSocialInputsContainer.querySelector(`[data-platform-row="${key}"]`);
+        if (existingRow) {
+            existingRow.remove();
+            if (btnEl) btnEl.classList.remove('ring-2', 'ring-black', 'dark:ring-white', 'bg-zinc-200', 'dark:bg-zinc-800');
+            return;
+        }
+
+        const config = PLATFORM_CONFIG[key];
+        if (!config) return;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 transition-all';
+        row.setAttribute('data-platform-row', key);
+        row.innerHTML = `
+            <div class="flex-1 relative flex items-center">
+                <div class="absolute left-3 flex items-center pointer-events-none">
+                    ${config.icon}
+                </div>
+                <input type="url" class="platform-social-url w-full min-h-[48px] bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg pl-9 pr-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400" placeholder="${config.placeholder}">
+            </div>
+            <button type="button" class="remove-platform-btn min-h-[48px] min-w-[48px] flex items-center justify-center text-zinc-400 hover:text-red-500 rounded-lg transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800" title="Remove field">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        `;
+
+        const inputEl = row.querySelector('.platform-social-url');
+        attachProtocolFormatter(inputEl);
+
+        row.querySelector('.remove-platform-btn').addEventListener('click', () => {
+            row.remove();
+            if (btnEl) btnEl.classList.remove('ring-2', 'ring-black', 'dark:ring-white', 'bg-zinc-200', 'dark:bg-zinc-800');
+        });
+
+        activeSocialInputsContainer.appendChild(row);
+        inputEl.focus();
+        if (btnEl) btnEl.classList.add('ring-2', 'ring-black', 'dark:ring-white', 'bg-zinc-200', 'dark:bg-zinc-800');
+    }
+
+    if (socialPlatformSelectors) {
+        socialPlatformSelectors.querySelectorAll('.social-platform-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const key = btn.getAttribute('data-platform');
+                togglePlatformInput(key, btn);
+            });
+        });
+    }
+
+    function createDynamicSocialInput() {
+        if (!additionalSocialContainer) return;
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2 transition-all';
+        row.innerHTML = `
+            <div class="flex-1">
+                <input type="url" class="dynamic-social-url w-full min-h-[48px] bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400" placeholder="https://... (Twitter/X, TikTok, YouTube, etc.)">
+            </div>
+            <button type="button" class="remove-social-btn min-h-[48px] min-w-[48px] flex items-center justify-center text-zinc-400 hover:text-red-500 rounded-lg transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800" title="Remove link">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        `;
+        attachProtocolFormatter(row.querySelector('.dynamic-social-url'));
+        row.querySelector('.remove-social-btn').addEventListener('click', () => {
+            row.remove();
+        });
+        additionalSocialContainer.appendChild(row);
+    }
+
+    if (addSocialLinkBtn) {
+        addSocialLinkBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            createDynamicSocialInput();
+        });
+    }
+
     function toggleModal(show) {
         if (intakeModal) {
             intakeModal.classList.toggle('hidden', !show);
             if (!show) {
                 intakeForm.reset();
+                const hiddenInd = document.getElementById('intakeIndustry');
+                const searchInd = document.getElementById('intakeIndustrySearch');
+                const dropInd = document.getElementById('intakeIndustryDropdown');
+                if (hiddenInd) hiddenInd.value = '';
+                if (searchInd) searchInd.value = '';
+                if (dropInd) dropInd.classList.add('hidden');
+
+                if (activeSocialInputsContainer) activeSocialInputsContainer.innerHTML = '';
+                if (additionalSocialContainer) additionalSocialContainer.innerHTML = '';
+                if (socialPlatformSelectors) {
+                    socialPlatformSelectors.querySelectorAll('.social-platform-btn').forEach(btn => {
+                        btn.classList.remove('ring-2', 'ring-black', 'dark:ring-white', 'bg-zinc-200', 'dark:bg-zinc-800');
+                    });
+                }
                 valError.classList.add('hidden');
             }
         }
@@ -130,8 +441,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const client_name = document.getElementById('intakeClientName').value.trim();
             const company_name = document.getElementById('intakeCompanyName').value.trim();
             const industry = document.getElementById('intakeIndustry').value.trim();
-            const website_url = document.getElementById('intakeWebsiteUrl').value.trim() || null;
-            const social_media_urls = document.getElementById('intakeSocialUrls').value.trim() || null;
+            
+            const raw_website = document.getElementById('intakeWebsiteUrl').value.trim();
+            const website_url = raw_website ? ensureHttpProtocol(raw_website) : null;
+
+            const platformUrls = Array.from(document.querySelectorAll('.platform-social-url'))
+                .map(el => ensureHttpProtocol(el.value || ''))
+                .filter(Boolean);
+            const dynamicUrls = Array.from(document.querySelectorAll('.dynamic-social-url'))
+                .map(el => ensureHttpProtocol(el.value || ''))
+                .filter(Boolean);
+
+            const allSocials = [...platformUrls, ...dynamicUrls].filter(Boolean);
+            const social_media_urls = allSocials.length > 0 ? allSocials.join(', ') : null;
+
             const budgetVal = document.getElementById('intakeBudget').value.trim();
             const budget = budgetVal ? parseFloat(budgetVal) : null;
 
@@ -464,6 +787,69 @@ document.addEventListener('DOMContentLoaded', () => {
     if (clientSearchInput) clientSearchInput.addEventListener('input', renderClientDirectory);
     if (clientStatusFilter) clientStatusFilter.addEventListener('change', renderClientDirectory);
 
+    function renderDrawerSocialBadges(websiteUrl, socialUrlsStr) {
+        const container = document.getElementById('drawerSocialBadges');
+        if (!container) return;
+
+        const links = [];
+        if (websiteUrl) links.push(websiteUrl.trim());
+        if (socialUrlsStr) {
+            const split = socialUrlsStr.replace(/\n/g, ',').split(',');
+            split.forEach(s => {
+                if (s.trim()) links.push(s.trim());
+            });
+        }
+
+        if (links.length === 0) {
+            container.innerHTML = `<span class="text-xs text-zinc-400 font-medium italic">No social links recorded</span>`;
+            return;
+        }
+
+        container.innerHTML = links.map(url => {
+            const fullUrl = ensureHttpProtocol(url);
+            const lower = fullUrl.toLowerCase();
+
+            let badgeLabel = "Website";
+            let iconSvg = `<svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0-3-4.03-3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>`;
+            let badgeStyle = "text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900";
+
+            if (lower.includes("instagram.com")) {
+                badgeLabel = "Instagram";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`;
+                badgeStyle = "text-pink-600 dark:text-pink-400 border-pink-200 dark:border-pink-900/50 bg-pink-50 dark:bg-pink-950/40";
+            } else if (lower.includes("facebook.com")) {
+                badgeLabel = "Facebook";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
+                badgeStyle = "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/40";
+            } else if (lower.includes("linkedin.com")) {
+                badgeLabel = "LinkedIn";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>`;
+                badgeStyle = "text-blue-500 dark:text-blue-400 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/40";
+            } else if (lower.includes("tiktok.com")) {
+                badgeLabel = "TikTok";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.34a6.33 6.33 0 0 0-1-.08 6.26 6.26 0 0 0-6.25 6.25A6.26 6.26 0 0 0 9.34 21.8c3.3 0 6.06-2.54 6.24-5.81V9.28a8.28 8.28 0 0 0 4.01 1.03V6.86a4.78 4.78 0 0 1-.01-.17z"/></svg>`;
+                badgeStyle = "text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900";
+            } else if (lower.includes("youtube.com")) {
+                badgeLabel = "YouTube";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+                badgeStyle = "text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40";
+            } else if (lower.includes("twitter.com") || lower.includes("x.com")) {
+                badgeLabel = "Twitter/X";
+                iconSvg = `<svg class="w-3.5 h-3.5 text-zinc-800 dark:text-zinc-200" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+                badgeStyle = "text-zinc-800 dark:text-zinc-200 border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900";
+            }
+
+            return `
+                <a href="${fullUrl}" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${badgeStyle} hover:scale-[1.03] transition-transform">
+                    ${iconSvg}
+                    <span>${badgeLabel}</span>
+                    <svg class="w-3 h-3 opacity-60 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+            `;
+        }).join('');
+    }
+
     // Slide-over Drawer inspection and global helper functions
     window.inspectClientDetails = function(clientId) {
         const client = loadedProposals.find(c => c.client_id === clientId);
@@ -471,6 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('drawerClientName').textContent = client.client_name || client.company_name;
         document.getElementById('drawerCompanyName').textContent = `${client.company_name} • ${client.industry}`;
+        renderDrawerSocialBadges(client.website_url, client.social_media_urls);
         
         const statusSelect = document.getElementById('drawerStatusSelect');
         statusSelect.value = client.client_status;
@@ -649,6 +1036,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTableRows(records) {
         loadedProposals = records;
+        if (window.updateComboboxDbIndustries) {
+            window.updateComboboxDbIndustries(records);
+        }
         proposalsTableBody.innerHTML = '';
 
         if (!records || records.length === 0) {
