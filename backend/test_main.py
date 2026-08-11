@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app, sanitize_input
-from ai_Engine import run_ai_audit
+from ai_Engine import run_ai_audit, parse_social_platforms
 
 client = TestClient(app)
 
@@ -70,6 +70,34 @@ def test_ai_audit_fallback_respects_budget_thresholds():
     
     assert total_proposed_nobudget >= 10000.0
     assert total_proposed_nobudget <= 30000.0
+
+
+# Test AI audit fallback populates specified target competitors when passed
+def test_run_ai_audit_with_custom_competitors():
+    competitors = ["Custom Comp A", "Custom Comp B", "Custom Comp C"]
+    result = run_ai_audit("Test Client", "Test Company", "Testing", "http://test.com", "social", 15000.0, competitors)
+    
+    comp_analysis = result.get("competitor_analysis", [])
+    assert len(comp_analysis) == 3
+    comp_names = [c["name"] for c in comp_analysis]
+    assert "Custom Comp A" in comp_names
+    assert "Custom Comp B" in comp_names
+    assert "Custom Comp C" in comp_names
+
+
+def test_run_ai_audit_with_partial_competitor_seeds():
+    # 1 competitor provided: AI fills remaining 2
+    res_1 = run_ai_audit("Client 1", "Company 1", "Industry", "http://c1.com", None, None, ["Solo Competitor"])
+    comps_1 = [c["name"] for c in res_1.get("competitor_analysis", [])]
+    assert len(comps_1) == 3
+    assert "Solo Competitor" in comps_1
+
+    # 2 competitors provided: AI fills remaining 1
+    res_2 = run_ai_audit("Client 2", "Company 2", "Industry", "http://c2.com", None, None, ["Comp X", "Comp Y"])
+    comps_2 = [c["name"] for c in res_2.get("competitor_analysis", [])]
+    assert len(comps_2) == 3
+    assert "Comp X" in comps_2
+    assert "Comp Y" in comps_2
 
 
 def test_generate_proposal_without_budget_succeeds():
@@ -199,6 +227,135 @@ def test_client_deletion_and_dashboard_query():
 
     delete_fake_res = client.delete("/api/admin/clients/999999")
     assert delete_fake_res.status_code == 404
+
+
+# Test parse_social_platforms correctly categorizes social URLs by domain
+def test_parse_social_platforms():
+    social_str = "https://instagram.com/apexdigital, https://facebook.com/apexdigital, https://linkedin.com/company/apexdigital, https://tiktok.com/@apexdigital"
+    result = parse_social_platforms(social_str)
+    
+    assert result["Instagram"] == "https://instagram.com/apexdigital"
+    assert result["Facebook"] == "https://facebook.com/apexdigital"
+    assert result["LinkedIn"] == "https://linkedin.com/company/apexdigital"
+    assert result["TikTok"] == "https://tiktok.com/@apexdigital"
+    
+    empty_result = parse_social_platforms(None)
+    assert empty_result == {}
+
+
+def test_audit_staging_editor_flow():
+    # 1. Create client & proposal
+    payload = {
+        "client_name": "Audit Edit Test",
+        "company_name": "Staging Corp",
+        "industry": "Marketing",
+        "website_url": "https://stagingcorp.com",
+        "social_media_urls": None,
+        "budget": 25000.0,
+        "competitors": ["Original Comp A", "Original Comp B"]
+    }
+    response = client.post("/api/proposals/generate", json=payload)
+    assert response.status_code == 200
+    preview_link = response.json()["preview_link"]
+    proposal_hash = preview_link.split("id=")[1]
+    client_id = response.json()["client_id"]
+
+    try:
+        # 2. Test PUT /api/admin/proposals/{hash}/audit
+        update_payload = {
+            "overall_score": 85,
+            "scores": [80, 75, 90, 85],
+            "online_sentiment_review": "Refined online sentiment summary for executive pitch.",
+            "visibility_gaps": ["Custom gap 1", "Custom gap 2"],
+            "rep_notes": "Rep note: client budget is flex if SEO is prioritized."
+        }
+        update_res = client.put(f"/api/admin/proposals/{proposal_hash}/audit", json=update_payload)
+        assert update_res.status_code == 200
+        assert update_res.json()["status"] == "Success"
+        assert update_res.json()["audit_data"]["overall_score"] == 85
+        assert update_res.json()["audit_data"]["rep_notes"] == "Rep note: client budget is flex if SEO is prioritized."
+
+        # 3. Test POST /api/admin/proposals/{hash}/rerun-competitors
+        rerun_payload = {
+            "competitors": ["New Rival X", "New Rival Y", "New Rival Z"]
+        }
+        rerun_res = client.post(f"/api/admin/proposals/{proposal_hash}/rerun-competitors", json=rerun_payload)
+        assert rerun_res.status_code == 200
+        assert rerun_res.json()["status"] == "Success"
+        assert rerun_res.json()["competitors_list"] == ["New Rival X", "New Rival Y", "New Rival Z"]
+        assert len(rerun_res.json()["competitor_analysis"]) == 3
+
+        # 4. Test POST /api/admin/proposals/{hash}/ai-copilot
+        copilot_payload = {
+            "prompt": "Give 3 technical quick win recommendations for this audit."
+        }
+        copilot_res = client.post(f"/api/admin/proposals/{proposal_hash}/ai-copilot", json=copilot_payload)
+        assert copilot_res.status_code == 200
+        assert copilot_res.json()["status"] == "Success"
+        assert "copilot_response" in copilot_res.json()
+        assert len(copilot_res.json()["chat_history"]) >= 2
+
+        # 5. Verify GET /api/proposals/{hash} returns updated audit data
+        get_res = client.get(f"/api/proposals/{proposal_hash}")
+        assert get_res.status_code == 200
+        assert get_res.json()["audit_data"]["overall_score"] == 85
+        assert get_res.json()["rep_notes"] == "Rep note: client budget is flex if SEO is prioritized."
+        assert get_res.json()["competitors_list"] == ["New Rival X", "New Rival Y", "New Rival Z"]
+
+    finally:
+        client.delete(f"/api/admin/clients/{client_id}")
+
+
+def test_transpose_proposal_audit():
+    # 1. Generate client & proposal
+    response = client.post("/api/proposals/generate", json={
+        "client_name": "Test Transpose Client",
+        "company_name": "Transpose Co",
+        "industry": "Real Estate & Property Development",
+        "website_url": "https://transpose-test.co.za",
+        "budget": 20000.0
+    })
+    assert response.status_code == 200
+    data = response.json()
+    proposal_hash = data["proposal_hash"]
+    client_id = data["client_id"]
+
+    try:
+        # 2. Transpose payload
+        transpose_payload = {
+            "overall_score": 45,
+            "scores": [45, 50, 40, 42],
+            "online_sentiment_review": "Updated executive sentiment review text for transposition.",
+            "visibility_gaps": [
+                "Missing structured local Schema markup.",
+                "Suboptimal mobile Core Web Vitals LCP score."
+            ],
+            "competitor_analysis": [
+                {"name": "Competitor A", "platform_leveraged": "Ads", "revenue_advantage": "High conversion"}
+            ],
+            "recalculate_services": True
+        }
+
+        transpose_res = client.post(f"/api/admin/proposals/{proposal_hash}/transpose", json=transpose_payload)
+        assert transpose_res.status_code == 200
+        res_data = transpose_res.json()
+        assert res_data["status"] == "Success"
+        assert "recommended_services" in res_data
+        assert len(res_data["recommended_services"]) > 0
+
+        # 3. Verify via GET /api/proposals/{proposal_hash}
+        get_res = client.get(f"/api/proposals/{proposal_hash}")
+        assert get_res.status_code == 200
+        get_data = get_res.json()
+        assert get_data["audit_data"]["overall_score"] == 45
+        assert get_data["audit_data"]["online_sentiment_review"] == "Updated executive sentiment review text for transposition."
+        assert len(get_data["recommended_services"]) > 0
+
+    finally:
+        client.delete(f"/api/admin/clients/{client_id}")
+
+
+
 
 
 
