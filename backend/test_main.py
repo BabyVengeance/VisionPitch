@@ -98,6 +98,31 @@ def test_run_ai_audit_with_partial_competitor_seeds():
     assert len(comps_2) == 3
     assert "Comp X" in comps_2
     assert "Comp Y" in comps_2
+    assert res_2["competitor_analysis"][0]["is_anchor"] is True
+    assert res_2["competitor_analysis"][0]["source_label"] == "Sales Rep Anchor Input"
+    assert res_2["competitor_analysis"][1]["is_anchor"] is True
+    assert res_2["competitor_analysis"][1]["source_label"] == "Sales Rep Anchor Input"
+    assert res_2["competitor_analysis"][2]["is_anchor"] is False
+    assert res_2["competitor_analysis"][2]["source_label"] == "AI Discovered Niche Competitor"
+
+
+def test_tag_competitors_enforces_sales_rep_names_over_generic():
+    from ai_Engine import tag_competitors
+    mock_data = {
+        "competitor_analysis": [
+            {"name": "Generic AI Competitor 1", "platform_leveraged": "SEO", "revenue_advantage": "High domain authority"},
+            {"name": "Generic AI Competitor 2", "platform_leveraged": "Ads", "revenue_advantage": "Conversion funnel"}
+        ],
+        "competitor_benchmarks": "Industry visibility is 70%."
+    }
+    tagged = tag_competitors(mock_data, ["sales_comp.co.za"])
+    
+    assert tagged["competitor_analysis"][0]["name"] == "sales_comp.co.za"
+    assert tagged["competitor_analysis"][0]["is_anchor"] is True
+    assert tagged["competitor_analysis"][0]["source_label"] == "Sales Rep Anchor Input"
+    assert tagged["competitor_analysis"][1]["is_anchor"] is False
+    assert "sales_comp.co.za" in tagged["competitor_benchmarks"]
+
 
 
 def test_generate_proposal_without_budget_succeeds():

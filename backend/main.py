@@ -156,7 +156,8 @@ async def generate_proposal(data: ClientIntake):
                     ai_payload.get("core_web_vitals_score", 38),
                     ai_payload.get("schema_infrastructure_score", 25)
                 ],
-                "benchmark_scores": ai_payload.get("market_benchmark_scores", [78, 70, 75, 82])
+                "benchmark_scores": ai_payload.get("market_benchmark_scores", [78, 70, 75, 82]),
+                "competitors_list": competitors_clean or []
             })
 
             suggested_list = ai_payload.get("suggested_modules", [])

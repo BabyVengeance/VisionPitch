@@ -255,19 +255,6 @@ Audit Guidelines:
    Configure each service with realistic base hours (e.g., 20-50 hours) and an estimated cost (e.g. calculated at R150/hour to R300/hour depending on technical complexity).
 """
 
-    def tag_competitors(data: Dict[str, Any], provided: List[str]) -> Dict[str, Any]:
-        comp_list = data.get("competitor_analysis", [])
-        prov_clean = [p.lower() for p in provided if p]
-        for idx, item in enumerate(comp_list):
-            item_name = item.get("name", "").lower()
-            if prov_clean and (idx < len(prov_clean) or any(p in item_name or item_name in p for p in prov_clean)):
-                item["is_anchor"] = True
-                item["source_label"] = "Sales Rep Anchor Input"
-            else:
-                item["is_anchor"] = False
-                item["source_label"] = "AI Discovered Niche Competitor"
-        return data
-
     try:
         client = get_genai_client()
         response = client.models.generate_content(
@@ -284,6 +271,45 @@ Audit Guidelines:
         logger.warning("Gemini API pipeline unready or failed (%s). Implementing fallback engine.", e)
         fallback_data = get_fallback_audit(budget, social_profiles, competitors)
         return tag_competitors(fallback_data, provided_comps)
+
+def tag_competitors(data: Dict[str, Any], provided: List[str]) -> Dict[str, Any]:
+    """Ensures sales-rep-provided anchor competitors are explicitly named, tagged, and benchmarked."""
+    comp_list = data.get("competitor_analysis", [])
+    prov_clean = [p.strip() for p in (provided or []) if p and p.strip()]
+
+    if prov_clean:
+        for idx, p_name in enumerate(prov_clean):
+            if idx < len(comp_list):
+                item = comp_list[idx]
+                curr_name = item.get("name", "")
+                if not curr_name or not any(p.lower() in curr_name.lower() for p in [p_name]):
+                    item["name"] = p_name
+                item["is_anchor"] = True
+                item["source_label"] = "Sales Rep Anchor Input"
+            else:
+                comp_list.append({
+                    "name": p_name,
+                    "platform_leveraged": "Custom Funnels & SEO Hubs",
+                    "revenue_advantage": "Captures high-intent market traffic and search leads.",
+                    "is_anchor": True,
+                    "source_label": "Sales Rep Anchor Input"
+                })
+
+        for idx in range(len(prov_clean), len(comp_list)):
+            comp_list[idx]["is_anchor"] = False
+            comp_list[idx]["source_label"] = "AI Discovered Niche Competitor"
+
+        benchmarks = data.get("competitor_benchmarks", "")
+        if benchmarks and not any(p.lower() in benchmarks.lower() for p in prov_clean):
+            prov_str = ", ".join(prov_clean)
+            data["competitor_benchmarks"] = f"{benchmarks} Benchmarked directly against sales rep target anchor(s): {prov_str}."
+    else:
+        for item in comp_list:
+            item["is_anchor"] = False
+            item["source_label"] = "AI Discovered Niche Competitor"
+
+    data["competitor_analysis"] = comp_list
+    return data
 
 def rerun_competitor_analysis(
     client_name: str,
@@ -307,8 +333,8 @@ Re-run the competitor intelligence audit for the prospective client using the ne
 - Target Competitors Specified by Sales Rep: {comp_str}
 
 Tasks:
-1. Provide a clear evaluation of exactly 3 competitors leveraging online channels effectively (using the provided list: {comp_str}). For each competitor, specify their name, the digital platform they leverage, and their revenue advantage.
-2. Provide an updated market benchmark summary comparing the client directly against these competitors.
+1. Provide a clear evaluation of exactly 3 competitors leveraging online channels effectively. You MUST use the sales rep specified competitors ({comp_str}) as the exact `name` field for each corresponding entry in `competitor_analysis`. For each competitor, specify their name, the digital platform they leverage, and their revenue advantage.
+2. Provide an updated market benchmark summary comparing the client directly against these competitors ({comp_str}).
 
 Output JSON format matching this schema:
 {{
@@ -317,7 +343,7 @@ Output JSON format matching this schema:
     {{"name": "{provided_comps[1] if len(provided_comps) > 1 else 'Competitor 2'}", "platform_leveraged": "...", "revenue_advantage": "..."}},
     {{"name": "{provided_comps[2] if len(provided_comps) > 2 else 'Competitor 3'}", "platform_leveraged": "...", "revenue_advantage": "..."}}
   ],
-  "competitor_benchmarks": "Updated summary benchmarking client metrics..."
+  "competitor_benchmarks": "Updated summary benchmarking client metrics directly against {comp_str}..."
 }}
 """
 
@@ -329,9 +355,10 @@ Output JSON format matching this schema:
             config={'response_mime_type': 'application/json'}
         )
         parsed = json.loads(response.text)
+        tagged = tag_competitors(parsed, provided_comps)
         return {
-            "competitor_analysis": parsed.get("competitor_analysis", []),
-            "competitor_benchmarks": parsed.get("competitor_benchmarks", "")
+            "competitor_analysis": tagged.get("competitor_analysis", []),
+            "competitor_benchmarks": tagged.get("competitor_benchmarks", "")
         }
     except Exception as e:
         logger.warning("Gemini API competitor rerun failed (%s). Using fallback calculation.", e)
@@ -342,9 +369,14 @@ Output JSON format matching this schema:
                 "platform_leveraged": "Digital Funnels & SEO",
                 "revenue_advantage": f"Establishes market authority and captures organic search leads in {industry}."
             })
-        return {
+        fallback_data = {
             "competitor_analysis": fallback_comps,
             "competitor_benchmarks": f"Industry average performance remains at 70-75%. Benchmarked directly against {comp_str}."
+        }
+        tagged_fallback = tag_competitors(fallback_data, provided_comps)
+        return {
+            "competitor_analysis": tagged_fallback.get("competitor_analysis", []),
+            "competitor_benchmarks": tagged_fallback.get("competitor_benchmarks", "")
         }
 
 def query_audit_copilot(
