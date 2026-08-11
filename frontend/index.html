@@ -182,16 +182,50 @@
                 <div
                     class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center flex-wrap gap-3">
                     <h3 class="text-lg font-bold tracking-tight text-black dark:text-white">Recent Proposals</h3>
-                    <div class="flex items-center gap-2">
-                        <label for="priorityFilterSelect"
-                            class="text-xs font-semibold uppercase text-zinc-500 dark:text-zinc-400 hidden sm:inline">Priority:</label>
-                        <select id="priorityFilterSelect"
-                            class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer">
-                            <option value="All">All Priorities</option>
-                            <option value="High">High Only</option>
-                            <option value="Medium">Medium Only</option>
-                            <option value="Low">Low Only</option>
-                        </select>
+                    <div class="flex items-center flex-wrap gap-2.5">
+                        <div class="flex items-center gap-1.5">
+                            <label for="industryFilterSelect"
+                                class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Industry:</label>
+                            <select id="industryFilterSelect"
+                                class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors">
+                                <option value="All">All Industries</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <label for="valueFilterSelect"
+                                class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Value:</label>
+                            <select id="valueFilterSelect"
+                                class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors">
+                                <option value="All">All Values</option>
+                                <option value="under5k">&lt; R5,000</option>
+                                <option value="5k-15k">R5,000 - R15,000</option>
+                                <option value="over15k">&gt; R15,000</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <label for="priorityFilterSelect"
+                                class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Priority:</label>
+                            <select id="priorityFilterSelect"
+                                class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors">
+                                <option value="All">All Priorities</option>
+                                <option value="High">High Only</option>
+                                <option value="Medium">Medium Only</option>
+                                <option value="Low">Low Only</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <label for="statusFilterSelect"
+                                class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Status:</label>
+                            <select id="statusFilterSelect"
+                                class="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-black dark:text-white font-medium focus:outline-none cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors">
+                                <option value="All">All Statuses</option>
+                                <option value="Proposal generated">Proposal generated</option>
+                                <option value="Proposal sent">Proposal sent</option>
+                                <option value="Proposal viewed">Proposal viewed</option>
+                                <option value="Proposal signed">Proposal signed</option>
+                                <option value="Proposal declined">Proposal declined</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -199,20 +233,46 @@
                         <thead>
                             <tr
                                 class="bg-zinc-100/55 dark:bg-zinc-900/60 text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-900">
-                                <th class="px-6 py-3.5 font-semibold">Company Name</th>
-                                <th class="px-6 py-3.5 font-semibold">Industry</th>
-                                <th class="px-6 py-3.5 font-semibold">Value</th>
-                                <th id="thPriority"
-                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors flex items-center gap-1 select-none"
-                                    title="Click to sort by priority">
-                                    Priority
-                                    <svg class="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                    </svg>
+                                <th id="thCompany"
+                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors select-none group"
+                                    title="Click to sort by Company Name">
+                                    <div class="flex items-center gap-1">
+                                        <span>Company Name</span>
+                                        <svg class="sort-icon w-3 h-3 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    </div>
                                 </th>
-                                <th class="px-6 py-3.5 font-semibold">Status</th>
+                                <th id="thIndustry"
+                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors select-none group"
+                                    title="Click to sort by Industry">
+                                    <div class="flex items-center gap-1">
+                                        <span>Industry</span>
+                                        <svg class="sort-icon w-3 h-3 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    </div>
+                                </th>
+                                <th id="thValue"
+                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors select-none group"
+                                    title="Click to sort by Value">
+                                    <div class="flex items-center gap-1">
+                                        <span>Value</span>
+                                        <svg class="sort-icon w-3 h-3 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    </div>
+                                </th>
+                                <th id="thPriority"
+                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors select-none group"
+                                    title="Click to sort by Priority">
+                                    <div class="flex items-center gap-1">
+                                        <span>Priority</span>
+                                        <svg class="sort-icon w-3 h-3 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    </div>
+                                </th>
+                                <th id="thStatus"
+                                    class="px-6 py-3.5 font-semibold cursor-pointer hover:text-black dark:hover:text-white transition-colors select-none group"
+                                    title="Click to sort by Status">
+                                    <div class="flex items-center gap-1">
+                                        <span>Status</span>
+                                        <svg class="sort-icon w-3 h-3 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                    </div>
+                                </th>
                                 <th class="px-6 py-3.5 font-semibold">Action / Link</th>
                             </tr>
                         </thead>
@@ -432,10 +492,12 @@
                 <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-3 mb-5">
                     <div>
                         <h3 class="text-sm font-bold text-black dark:text-white">Pipeline Priority Breakdown</h3>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Revenue distribution across priority tiers</p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Revenue distribution across priority
+                            tiers</p>
                     </div>
                     <span id="prioWidgetTotalDeals"
-                        class="text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800">0 Deals</span>
+                        class="text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800">0
+                        Deals</span>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
@@ -443,13 +505,25 @@
                     <div class="lg:col-span-3 flex justify-center">
                         <div class="relative w-32 h-32 flex items-center justify-center">
                             <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                                <path class="text-zinc-200 dark:text-zinc-800" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioHigh" class="text-red-500 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioMed" class="text-blue-500 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                <path id="ringPrioLow" class="text-zinc-400 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="text-zinc-200 dark:text-zinc-800" stroke-width="3" stroke="currentColor"
+                                    fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioHigh" class="text-red-500 transition-all duration-700 ease-out"
+                                    stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor"
+                                    stroke-linecap="round" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioMed" class="text-blue-500 transition-all duration-700 ease-out"
+                                    stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor"
+                                    stroke-linecap="round" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="ringPrioLow" class="text-zinc-400 transition-all duration-700 ease-out"
+                                    stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor"
+                                    stroke-linecap="round" fill="none"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             </svg>
                             <div class="absolute flex flex-col items-center">
-                                <span id="prioWidgetTopPct" class="text-lg font-extrabold text-black dark:text-white">0%</span>
+                                <span id="prioWidgetTopPct"
+                                    class="text-lg font-extrabold text-black dark:text-white">0%</span>
                                 <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400">High</span>
                             </div>
                         </div>
@@ -463,10 +537,13 @@
                                 <span class="flex items-center gap-2 text-sm font-bold text-red-600 dark:text-red-400">
                                     <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> High Priority
                                 </span>
-                                <span id="prioValHigh" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                                <span id="prioValHigh" class="text-sm font-extrabold text-black dark:text-white">R 0
+                                    (0%)</span>
                             </div>
                             <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="prioBarHigh" class="h-full bg-red-500 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                                <div id="prioBarHigh"
+                                    class="h-full bg-red-500 transition-all duration-700 ease-out rounded-full"
+                                    style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
                                 <span id="prioCountHigh">0 deals</span>
@@ -476,13 +553,17 @@
                         <!-- Medium -->
                         <div class="space-y-1.5">
                             <div class="flex justify-between items-baseline">
-                                <span class="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
+                                <span
+                                    class="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400">
                                     <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Medium Priority
                                 </span>
-                                <span id="prioValMed" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                                <span id="prioValMed" class="text-sm font-extrabold text-black dark:text-white">R 0
+                                    (0%)</span>
                             </div>
                             <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="prioBarMed" class="h-full bg-blue-500 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                                <div id="prioBarMed"
+                                    class="h-full bg-blue-500 transition-all duration-700 ease-out rounded-full"
+                                    style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
                                 <span id="prioCountMed">0 deals</span>
@@ -492,13 +573,17 @@
                         <!-- Low -->
                         <div class="space-y-1.5">
                             <div class="flex justify-between items-baseline">
-                                <span class="flex items-center gap-2 text-sm font-bold text-zinc-500 dark:text-zinc-400">
+                                <span
+                                    class="flex items-center gap-2 text-sm font-bold text-zinc-500 dark:text-zinc-400">
                                     <span class="w-2.5 h-2.5 rounded-full bg-zinc-400"></span> Low Priority
                                 </span>
-                                <span id="prioValLow" class="text-sm font-extrabold text-black dark:text-white">R 0 (0%)</span>
+                                <span id="prioValLow" class="text-sm font-extrabold text-black dark:text-white">R 0
+                                    (0%)</span>
                             </div>
                             <div class="w-full h-3 bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                                <div id="prioBarLow" class="h-full bg-zinc-400 transition-all duration-700 ease-out rounded-full" style="width: 0%"></div>
+                                <div id="prioBarLow"
+                                    class="h-full bg-zinc-400 transition-all duration-700 ease-out rounded-full"
+                                    style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
                                 <span id="prioCountLow">0 deals</span>
@@ -663,143 +748,495 @@
     <div id="intakeModal"
         class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div
-            class="bg-white dark:bg-zinc-950 w-full max-w-lg border border-zinc-200 dark:border-zinc-900 rounded-xl shadow-xl overflow-hidden">
+            class="bg-white dark:bg-zinc-950 w-full max-w-3xl md:max-w-4xl border border-zinc-200 dark:border-zinc-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <!-- Header -->
             <div
-                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/40">
-                <h3 class="text-sm font-bold text-black dark:text-white uppercase tracking-wider">New Client Intake</h3>
+                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/40 shrink-0">
+                <div>
+                    <h3 class="text-sm font-bold text-black dark:text-white uppercase tracking-wider">New Client Intake
+                    </h3>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Capture client details and online
+                        footprint for AI market synthesis</p>
+                </div>
                 <button id="closeIntakeModal"
-                    class="text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-200 text-2xl font-semibold leading-none">&times;</button>
+                    class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-2xl font-semibold leading-none">&times;</button>
             </div>
-            <form id="intakeForm" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Client Name</label>
-                    <input type="text" id="intakeClientName" required
-                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Company Name</label>
-                    <input type="text" id="intakeCompanyName" required
-                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
-                </div>
-                <div class="relative" id="industryComboboxContainer">
-                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Industry</label>
-                    <!-- Hidden input to hold selected value & enforce HTML form validation -->
-                    <input type="hidden" id="intakeIndustry" required>
 
-                    <!-- Visual Search Input -->
-                    <div class="relative">
-                        <input type="text" id="intakeIndustrySearch" placeholder="Search or select industry..."
-                            autocomplete="off" required
-                            class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 pr-8 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
-                        <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+            <!-- Form Body with 2-Column Grid Layout -->
+            <form id="intakeForm" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Left Column: Business & Identity -->
+                        <div class="space-y-4">
+                            <div
+                                class="flex items-center gap-2 pb-1 border-b border-zinc-200/80 dark:border-zinc-800/80">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                                    Business Identity</h4>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Client Name
+                                    *</label>
+                                <input type="text" id="intakeClientName" required
+                                    class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                                    placeholder="e.g. Sarah Jenkins">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Company Name
+                                    *</label>
+                                <input type="text" id="intakeCompanyName" required
+                                    class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                                    placeholder="e.g. Apex Property Group">
+                            </div>
+
+                            <div class="relative" id="industryComboboxContainer">
+                                <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Industry *</label>
+                                <input type="hidden" id="intakeIndustry" required>
+
+                                <div class="relative">
+                                    <input type="text" id="intakeIndustrySearch"
+                                        placeholder="Search or select industry..." autocomplete="off" required
+                                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 pr-8 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400">
+                                    <div
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div id="intakeIndustryDropdown"
+                                    class="hidden absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl py-1 text-xs">
+                                    <div id="industryOptionsList"
+                                        class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Website URL</label>
+                                <input type="url" id="intakeWebsiteUrl"
+                                    class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                                    placeholder="https://example.co.za">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Budget (ZAR)</label>
+                                <input type="number" id="intakeBudget" min="1000" step="1000"
+                                    class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
+                                    placeholder="Optional (ZAR e.g. 50000)">
+                            </div>
+
+                            <!-- Target Competitors for Audit Analysis (Not Stored in Database) -->
+                            <div class="pt-2 border-t border-zinc-200/60 dark:border-zinc-900/60">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-bold uppercase text-zinc-400 tracking-wider">Target Competitors</label>
+                                    <span class="text-[10px] text-zinc-400 font-medium">1–3 competitors or AI auto-find</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <input type="text" id="intakeCompetitor1"
+                                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2 text-xs text-black dark:text-white focus:outline-none focus:border-zinc-400 transition-colors"
+                                        placeholder="Competitor 1 (e.g. competitor.co.za or Name)">
+                                    <input type="text" id="intakeCompetitor2"
+                                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2 text-xs text-black dark:text-white focus:outline-none focus:border-zinc-400 transition-colors"
+                                        placeholder="Competitor 2 (Optional - AI fills remaining)">
+                                    <input type="text" id="intakeCompetitor3"
+                                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2 text-xs text-black dark:text-white focus:outline-none focus:border-zinc-400 transition-colors"
+                                        placeholder="Competitor 3 (Optional - AI fills remaining)">
+                                </div>
+                                <p class="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">Domain names auto-format (e.g. comp.co.za &rarr; https://comp.co.za). AI aligns niche research to anchor competitors.</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Digital & Social Footprint -->
+                        <div class="space-y-4 flex flex-col">
+                            <div
+                                class="flex items-center justify-between pb-1 border-b border-zinc-200/80 dark:border-zinc-800/80">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                                    <h4
+                                        class="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                                        Social Footprint</h4>
+                                </div>
+                                <span class="text-[10px] text-zinc-400 font-medium">Click icon to add link</span>
+                            </div>
+
+                            <!-- Platform Selectors -->
+                            <div class="flex flex-wrap gap-2" id="socialPlatformSelectors">
+                                <button type="button" data-platform="instagram"
+                                    class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
+                                    title="Add Instagram link">
+                                    <svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                    </svg>
+                                    Instagram
+                                </button>
+                                <button type="button" data-platform="facebook"
+                                    class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
+                                    title="Add Facebook link">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                    </svg>
+                                    Facebook
+                                </button>
+                                <button type="button" data-platform="linkedin"
+                                    class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
+                                    title="Add LinkedIn link">
+                                    <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                    </svg>
+                                    LinkedIn
+                                </button>
+                                <button type="button" data-platform="tiktok"
+                                    class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
+                                    title="Add TikTok link">
+                                    <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.34a6.33 6.33 0 0 0-1-.08 6.26 6.26 0 0 0-6.25 6.25A6.26 6.26 0 0 0 9.34 21.8c3.3 0 6.06-2.54 6.24-5.81V9.28a8.28 8.28 0 0 0 4.01 1.03V6.86a4.78 4.78 0 0 1-.01-.17z" />
+                                    </svg>
+                                    TikTok
+                                </button>
+                                <button type="button" data-platform="youtube"
+                                    class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
+                                    title="Add YouTube link">
+                                    <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                    </svg>
+                                    YouTube
+                                </button>
+                            </div>
+
+                            <!-- Selected Platform Input Fields -->
+                            <div id="activeSocialInputsContainer" class="space-y-2.5"></div>
+
+                            <!-- Custom Link Inputs -->
+                            <div id="additionalSocialContainer" class="space-y-2.5"></div>
+
+                            <button type="button" id="addSocialLinkBtn"
+                                class="min-h-[44px] w-full text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white flex items-center justify-center gap-1.5 transition-colors border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-lg mt-auto">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                + Add Custom Link
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Scrollable Dropdown List Panel -->
-                    <div id="intakeIndustryDropdown"
-                        class="hidden absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl py-1 text-xs">
-                        <div id="industryOptionsList" class="divide-y divide-zinc-100 dark:divide-zinc-800/50">
-                            <!-- Populated via JavaScript -->
-                        </div>
+                <!-- Footer Section -->
+                <div
+                    class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
+                    <div id="validationError" class="hidden text-xs text-red-500 font-bold"></div>
+                    <div class="flex gap-3 w-full sm:w-auto sm:ml-auto">
+                        <button type="button" id="cancelIntake"
+                            class="px-6 py-3 min-h-[48px] min-w-[120px] bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors border border-zinc-200 dark:border-zinc-800">Cancel</button>
+                        <button type="submit"
+                            class="px-8 py-3 min-h-[48px] min-w-[160px] bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black rounded-lg text-sm font-bold uppercase tracking-wider transition-colors">Submit</button>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Website URL</label>
-                    <input type="url" id="intakeWebsiteUrl"
-                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
-                        placeholder="https://...">
-                </div>
-
-                <!-- Compact Interactive Social Media Section -->
-                <div class="space-y-3 pt-2 border-t border-zinc-200/60 dark:border-zinc-900">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold uppercase text-zinc-400 tracking-wider">Social Media &
-                            Online Profiles</label>
-                        <span class="text-[10px] text-zinc-400 font-medium">Click icon to add profile</span>
-                    </div>
-
-                    <!-- Platform Selector Icons Bar -->
-                    <div class="flex flex-wrap gap-2" id="socialPlatformSelectors">
-                        <button type="button" data-platform="instagram"
-                            class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
-                            title="Add Instagram link">
-                            <svg class="w-4 h-4 text-pink-500" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                            </svg>
-                            Instagram
-                        </button>
-                        <button type="button" data-platform="facebook"
-                            class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
-                            title="Add Facebook link">
-                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                            Facebook
-                        </button>
-                        <button type="button" data-platform="linkedin"
-                            class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
-                            title="Add LinkedIn link">
-                            <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                            </svg>
-                            LinkedIn
-                        </button>
-                        <button type="button" data-platform="tiktok"
-                            class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
-                            title="Add TikTok link">
-                            <svg class="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.34a6.33 6.33 0 0 0-1-.08 6.26 6.26 0 0 0-6.25 6.25A6.26 6.26 0 0 0 9.34 21.8c3.3 0 6.06-2.54 6.24-5.81V9.28a8.28 8.28 0 0 0 4.01 1.03V6.86a4.78 4.78 0 0 1-.01-.17z" />
-                            </svg>
-                            TikTok
-                        </button>
-                        <button type="button" data-platform="youtube"
-                            class="social-platform-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all min-h-[40px]"
-                            title="Add YouTube link">
-                            <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                            </svg>
-                            YouTube
-                        </button>
-                    </div>
-
-                    <!-- Selected Platform Input Fields Container -->
-                    <div id="activeSocialInputsContainer" class="space-y-2.5"></div>
-
-                    <!-- Custom Link Container & Add Custom Link Button -->
-                    <div id="additionalSocialContainer" class="space-y-2.5"></div>
-
-                    <button type="button" id="addSocialLinkBtn"
-                        class="min-h-[48px] w-full text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white flex items-center justify-center gap-1.5 transition-colors border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-lg my-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                            </path>
-                        </svg>
-                        + Add Custom Link
-                    </button>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-zinc-400 mb-1">Budget (ZAR)</label>
-                    <input type="number" id="intakeBudget" min="1"
-                        class="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-zinc-400"
-                        placeholder="Optional (ZAR)">
-                </div>
-                <div id="validationError" class="hidden text-xs text-red-500 font-bold"></div>
-                <div class="pt-4 flex gap-3">
-                    <button type="button" id="cancelIntake"
-                        class="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors border border-zinc-200 dark:border-zinc-800">Cancel</button>
-                    <button type="submit"
-                        class="flex-1 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black py-3 rounded-lg text-sm font-bold uppercase tracking-wider transition-colors">Submit</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal pop-up for editing and staging full AI audits with embedded AI Copilot -->
+    <div id="auditStagingEditorModal"
+        class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-md flex items-center justify-center p-3 md:p-6">
+        <div
+            class="bg-white dark:bg-zinc-950 w-full max-w-6xl border border-zinc-200 dark:border-zinc-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[94vh]">
+            <!-- Header -->
+            <div
+                class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-zinc-50 dark:bg-zinc-900/60 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-black dark:text-white flex items-center gap-2">
+                            Audit Staging & Strategic Editor
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">Staging Mode</span>
+                        </h3>
+                        <p id="stagingClientSubtitle" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Editing audit context for <span id="stagingClientNameSpan" class="font-bold text-black dark:text-white">Client</span>
+                        </p>
+                    </div>
+                </div>
+                <button id="closeStagingEditorHeaderBtn"
+                    class="text-zinc-400 hover:text-black dark:hover:text-white text-2xl font-bold leading-none">&times;</button>
+            </div>
+
+            <!-- Main Staging Workspace (2 Columns) -->
+            <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-0">
+                
+                <!-- Left Pane: Sub-Tabbed Audit Workspace (8 Cols ~67% Width) -->
+                <div class="lg:col-span-8 flex flex-col min-h-0 border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black overflow-hidden">
+                    
+                    <!-- Sticky Sub-Tab Bar -->
+                    <div class="px-6 py-3 border-b border-zinc-200 dark:border-zinc-900 bg-zinc-50/80 dark:bg-zinc-950/80 backdrop-blur-sm flex flex-wrap items-center gap-2 shrink-0">
+                        <button type="button" id="tabStagingScores" class="stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-black dark:bg-white text-white dark:text-black shadow-sm flex items-center gap-1.5" data-tab="scores">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Overview & Scores
+                        </button>
+                        <button type="button" id="tabStagingCompetitors" class="stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all flex items-center gap-1.5" data-tab="competitors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Competitor Engine
+                        </button>
+                        <button type="button" id="tabStagingGapsNotes" class="stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all flex items-center gap-1.5" data-tab="gapsNotes">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Gaps & Notes
+                        </button>
+                        <button type="button" id="tabStagingViewAll" class="stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all flex items-center gap-1.5 sm:ml-auto" data-tab="viewAll">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            View All
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Workspace Body -->
+                    <div class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-6">
+
+                        <!-- VIEW TAB 1: Scores & Online Sentiment -->
+                        <div id="stagingViewScores" class="stagingSubtabView space-y-6">
+                            <!-- Scores Dashboard & Controls -->
+                            <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 space-y-4">
+                                <div class="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                        Audit Scores & Health Index
+                                    </h4>
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-xs font-bold text-zinc-400">Overall Score:</label>
+                                        <input type="number" id="stagingOverallScore" min="0" max="100"
+                                            class="w-16 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-md px-2 py-1 text-center font-bold text-sm text-black dark:text-white focus:outline-none focus:border-blue-500">
+                                    </div>
+                                </div>
+
+                                <!-- 4 Category Scores Grid -->
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                                    <div class="space-y-1 bg-white dark:bg-zinc-900/60 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800/80">
+                                        <label class="block font-bold text-zinc-500 dark:text-zinc-400">Tech SEO</label>
+                                        <input type="number" id="stagingScoreSEO" min="0" max="100"
+                                            class="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 font-bold text-center text-black dark:text-white">
+                                    </div>
+                                    <div class="space-y-1 bg-white dark:bg-zinc-900/60 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800/80">
+                                        <label class="block font-bold text-zinc-500 dark:text-zinc-400">GEO (AI Search)</label>
+                                        <input type="number" id="stagingScoreGEO" min="0" max="100"
+                                            class="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 font-bold text-center text-black dark:text-white">
+                                    </div>
+                                    <div class="space-y-1 bg-white dark:bg-zinc-900/60 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800/80">
+                                        <label class="block font-bold text-zinc-500 dark:text-zinc-400">Core Web Vitals</label>
+                                        <input type="number" id="stagingScoreCWV" min="0" max="100"
+                                            class="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 font-bold text-center text-black dark:text-white">
+                                    </div>
+                                    <div class="space-y-1 bg-white dark:bg-zinc-900/60 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800/80">
+                                        <label class="block font-bold text-zinc-500 dark:text-zinc-400">Schema</label>
+                                        <input type="number" id="stagingScoreSchema" min="0" max="100"
+                                            class="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 font-bold text-center text-black dark:text-white">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Online Sentiment & Review Editor (Spacious 8-row height) -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex justify-between items-center">
+                                    <span>Online Sentiment & Strategic Review</span>
+                                    <span class="text-[10px] text-zinc-400 font-normal">Editable summary presented to client</span>
+                                </label>
+                                <textarea id="stagingSentimentInput" rows="8"
+                                    class="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-xl p-4 text-xs text-black dark:text-white focus:outline-none focus:border-zinc-400 leading-relaxed font-medium"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- VIEW TAB 2: Competitor Intelligence -->
+                        <div id="stagingViewCompetitors" class="stagingSubtabView hidden space-y-6">
+                            <div class="bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900 space-y-5">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                                    <div>
+                                        <h4 class="text-xs font-bold uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                            Competitor Intelligence Engine
+                                        </h4>
+                                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Modify competitor targets and rerun AI market analysis on demand.</p>
+                                    </div>
+                                    <button type="button" id="rerunCompetitorsBtn"
+                                        class="flex items-center justify-center gap-2 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        <span id="rerunBtnText">Rerun AI Competitor Audit</span>
+                                    </button>
+                                </div>
+
+                                <!-- 3 Competitor Inputs -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs" id="stagingCompetitorInputsContainer">
+                                    <div>
+                                        <label class="block font-bold text-zinc-400 mb-1">Competitor 1</label>
+                                        <input type="text" id="stagingComp1" placeholder="e.g. Competitor Alpha"
+                                            class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2.5 text-black dark:text-white font-medium focus:outline-none focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-zinc-400 mb-1">Competitor 2</label>
+                                        <input type="text" id="stagingComp2" placeholder="e.g. Competitor Beta"
+                                            class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2.5 text-black dark:text-white font-medium focus:outline-none focus:border-purple-500">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-zinc-400 mb-1">Competitor 3</label>
+                                        <input type="text" id="stagingComp3" placeholder="e.g. Competitor Gamma"
+                                            class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-2.5 text-black dark:text-white font-medium focus:outline-none focus:border-purple-500">
+                                    </div>
+                                </div>
+
+                                <!-- Competitor Benchmarks Summary (Spacious 7-row height) -->
+                                <div>
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Competitor Market Benchmark Summary</label>
+                                    <textarea id="stagingBenchmarkInput" rows="7"
+                                        class="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 text-xs text-black dark:text-white focus:outline-none leading-relaxed font-medium"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VIEW TAB 3: Gaps & Internal Notes -->
+                        <div id="stagingViewGapsNotes" class="stagingSubtabView hidden space-y-6">
+                            <!-- Visibility & Operational Gaps Editor -->
+                            <div class="space-y-3 bg-zinc-50 dark:bg-zinc-950 p-5 rounded-xl border border-zinc-200 dark:border-zinc-900">
+                                <div class="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-900 pb-3">
+                                    <label class="text-xs font-bold uppercase tracking-wider text-black dark:text-white flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        Visibility & Operational Gaps
+                                    </label>
+                                    <button type="button" id="addGapBtn"
+                                        class="text-xs text-blue-500 font-bold hover:underline flex items-center gap-1">
+                                        + Add Gap
+                                    </button>
+                                </div>
+                                <div id="stagingGapsContainer" class="space-y-2.5"></div>
+                            </div>
+
+                            <!-- Sales Rep Internal Notes Section (Spacious 6-row height) -->
+                            <div class="space-y-2 bg-amber-500/5 border border-amber-500/20 rounded-xl p-5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Sales Rep Confidential Internal Notes
+                                </label>
+                                <textarea id="stagingRepNotesInput" rows="6"
+                                    placeholder="Add confidential notes on client preferences, call nuances, or key focus areas..."
+                                    class="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 text-xs text-black dark:text-white focus:outline-none focus:border-amber-500 leading-relaxed font-medium"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Right Pane: AI Audit Copilot Chat Workspace (4 Cols ~33% Width) -->
+                <div class="lg:col-span-4 flex flex-col h-full bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+                    
+                    <!-- Copilot Header -->
+                    <div class="p-4 border-b border-zinc-200 dark:border-zinc-900 flex justify-between items-center bg-white dark:bg-zinc-900/40 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-black dark:text-white">
+                                Gemini AI Audit Copilot
+                            </h4>
+                        </div>
+                        <span class="text-[10px] text-zinc-400 font-mono">Gemini 2.5 Flash Engine</span>
+                    </div>
+
+                    <!-- Quick Prompt Chips -->
+                    <div class="p-3 border-b border-zinc-200 dark:border-zinc-900 bg-white/50 dark:bg-zinc-900/20 flex flex-wrap gap-1.5 shrink-0">
+                        <button type="button" class="copilotChip px-2.5 py-1 bg-zinc-200 dark:bg-zinc-900 hover:bg-zinc-300 dark:hover:bg-zinc-800 text-black dark:text-white rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1"
+                            data-prompt="Analyze technical SEO gaps for this client and suggest 3 quick-win fixes for the audit presentation.">
+                            <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Deep-dive SEO
+                        </button>
+                        <button type="button" class="copilotChip px-2.5 py-1 bg-zinc-200 dark:bg-zinc-900 hover:bg-zinc-300 dark:hover:bg-zinc-800 text-black dark:text-white rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1"
+                            data-prompt="Explain their Generative Engine Optimization (GEO / AI Search) weakness and how Apex Digital can fix it.">
+                            <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h-2a2 2 0 01-2-2z"></path></svg>
+                            AI Search (GEO)
+                        </button>
+                        <button type="button" class="copilotChip px-2.5 py-1 bg-zinc-200 dark:bg-zinc-900 hover:bg-zinc-300 dark:hover:bg-zinc-800 text-black dark:text-white rounded-full text-[11px] font-semibold transition-colors flex items-center gap-1"
+                            data-prompt="Rewrite the online sentiment review section to sound more authoritative and urgent for a C-level executive pitch.">
+                            <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            Polish Sentiment Summary
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Chat Feed -->
+                    <div id="copilotChatFeed" class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3.5 text-xs">
+                        <div class="p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1.5 text-zinc-700 dark:text-zinc-300">
+                            <span class="font-bold text-blue-500 flex items-center gap-1.5 text-[10px] uppercase">
+                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h-2a2 2 0 01-2-2z"></path></svg>
+                                Gemini Copilot Ready
+                            </span>
+                            <p class="leading-relaxed">
+                                Welcome! I am your AI Audit Copilot. You can ask me to research technical issues, draft pitch angles, or rewrite audit sections for this client.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Copilot Input Bar -->
+                    <div class="p-3 border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-900/40 shrink-0">
+                        <form id="copilotForm" class="flex gap-2">
+                            <input type="text" id="copilotPromptInput" placeholder="Ask AI Copilot to research or rewrite..." autocomplete="off"
+                                class="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-black dark:text-white focus:outline-none focus:border-blue-500">
+                            <button type="submit" id="sendCopilotBtn"
+                                class="px-4 py-2 bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black rounded-lg text-xs font-bold transition-all shrink-0">
+                                Send
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer Controls -->
+            <div
+                class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50/80 dark:bg-zinc-900/60 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span id="stagingStatusMessage" class="text-xs font-bold text-zinc-500 dark:text-zinc-400"></span>
+                    <span id="syncBadge"
+                        class="hidden text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        ✓ Transposed to Live Proposal
+                    </span>
+                </div>
+                <div class="flex flex-wrap gap-2.5 w-full sm:w-auto">
+                    <button type="button" id="closeStagingEditorBtn"
+                        class="px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-zinc-200 dark:border-zinc-800">
+                        Discard
+                    </button>
+                    <button type="button" id="saveStagingAuditBtn"
+                        class="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-md">
+                        Save Draft
+                    </button>
+                    <button type="button" id="transposeAuditToProposalBtn"
+                        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center gap-2 active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span id="transposeBtnText">Update & Transpose to Proposal</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -835,9 +1272,25 @@
                 </div>
             </div>
             <div
-                class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/40 flex justify-end">
+                class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/40 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    <button id="copyCompetitorsBtn" type="button"
+                        class="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg transition-colors">
+                        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                        </svg>
+                        <span id="copyCompetitorsText">Copy Competitors Digest</span>
+                    </button>
+                    <button id="editAuditFromModalBtn" type="button"
+                        class="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all duration-150 active:scale-[0.97] backdrop-blur-md shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        <span>Edit Audit</span>
+                    </button>
+                </div>
                 <button id="closeAuditBtn"
-                    class="bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-black dark:border-white">Close</button>
+                    class="bg-black hover:bg-zinc-900 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-black px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border border-black dark:border-white w-full sm:w-auto">Close</button>
             </div>
         </div>
     </div>

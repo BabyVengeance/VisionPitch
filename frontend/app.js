@@ -322,8 +322,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Attach blur protocol formatters to static website field
+    function formatCompetitorInput(inputEl) {
+        if (!inputEl) return;
+        inputEl.addEventListener('blur', () => {
+            const val = inputEl.value.trim();
+            if (!val) return;
+            if (/^([a-z0-9-]+\.)+[a-z]{2,}(\/.*)?$/i.test(val) || /^www\./i.test(val)) {
+                inputEl.value = ensureHttpProtocol(val);
+            }
+        });
+    }
+
+    // Attach blur protocol formatters to static website & competitor fields
     attachProtocolFormatter(document.getElementById('intakeWebsiteUrl'));
+    formatCompetitorInput(document.getElementById('intakeCompetitor1'));
+    formatCompetitorInput(document.getElementById('intakeCompetitor2'));
+    formatCompetitorInput(document.getElementById('intakeCompetitor3'));
 
     const PLATFORM_CONFIG = {
         instagram: {
@@ -442,6 +456,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (searchInd) searchInd.value = '';
                 if (dropInd) dropInd.classList.add('hidden');
 
+                const c1 = document.getElementById('intakeCompetitor1');
+                const c2 = document.getElementById('intakeCompetitor2');
+                const c3 = document.getElementById('intakeCompetitor3');
+                if (c1) c1.value = '';
+                if (c2) c2.value = '';
+                if (c3) c3.value = '';
+
                 if (activeSocialInputsContainer) activeSocialInputsContainer.innerHTML = '';
                 if (additionalSocialContainer) additionalSocialContainer.innerHTML = '';
                 if (socialPlatformSelectors) {
@@ -508,6 +529,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const budgetVal = document.getElementById('intakeBudget').value.trim();
             const budget = budgetVal ? parseFloat(budgetVal) : null;
 
+            const comp1 = document.getElementById('intakeCompetitor1')?.value.trim();
+            const comp2 = document.getElementById('intakeCompetitor2')?.value.trim();
+            const comp3 = document.getElementById('intakeCompetitor3')?.value.trim();
+            const competitorsList = [comp1, comp2, comp3].filter(Boolean);
+
             // Make sure at least website or social media URL is provided
             if (!website_url && !social_media_urls) {
                 valError.textContent = "Validation error: Either Website URL or Social Media is required.";
@@ -531,7 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     industry,
                     website_url,
                     social_media_urls,
-                    budget
+                    budget,
+                    competitors: competitorsList.length > 0 ? competitorsList : null
                 })
             })
                 .then(res => {
@@ -559,8 +586,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let loadedProposals = [];
+    let currentIndustryFilter = 'All';
+    let currentValueFilter = 'All';
     let currentPriorityFilter = 'All';
-    let prioritySortDirection = null; // null | 'desc' | 'asc'
+    let currentStatusFilter = 'All';
+
+    let currentSortField = null; // 'company', 'industry', 'value', 'priority', 'status'
+    let currentSortDirection = null; // 'asc', 'desc'
 
     function getPriorityBadgeHTML(priority) {
         const p = (priority || 'Medium').toLowerCase();
@@ -626,13 +658,77 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === auditModal) toggleAuditModal(false);
     });
 
+    // Favicon logo extractor helper using Google's Favicon service
+    function getFaviconUrl(compName) {
+        if (!compName) return null;
+        const domainMatch = compName.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})/);
+        if (domainMatch && domainMatch[1]) {
+            return `https://www.google.com/s2/favicons?domain=${domainMatch[1]}&sz=64`;
+        }
+        const cleanSlug = compName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (cleanSlug) {
+            return `https://www.google.com/s2/favicons?domain=${cleanSlug}.co.za&sz=64`;
+        }
+        return null;
+    }
+
+    const copyCompetitorsBtn = document.getElementById('copyCompetitorsBtn');
+    const copyCompetitorsText = document.getElementById('copyCompetitorsText');
+    const editAuditFromModalBtn = document.getElementById('editAuditFromModalBtn');
+    let activeAuditCompetitors = [];
+    let activeAuditCompanyName = "";
+    let activeAuditProposalHash = "";
+
+    if (copyCompetitorsBtn) {
+        copyCompetitorsBtn.addEventListener('click', () => {
+            if (!activeAuditCompetitors || activeAuditCompetitors.length === 0) {
+                alert("No competitor analysis data available to copy.");
+                return;
+            }
+            let textDigest = `📊 MARKET COMPETITOR BENCHMARK AUDIT — ${activeAuditCompanyName.toUpperCase()}\n`;
+            textDigest += `Synthesized by Apex VisionPitch Engine\n\n`;
+
+            activeAuditCompetitors.forEach((comp, idx) => {
+                const badge = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input" ? "[Sales Rep Anchor Input]" : "[AI Discovered Competitor]";
+                textDigest += `${idx + 1}. ${comp.name} ${badge}\n`;
+                textDigest += `   • Core Strategy: ${comp.platform_leveraged || 'Presence'}\n`;
+                textDigest += `   • Market Advantage: ${comp.revenue_advantage || 'High domain authority.'}\n\n`;
+            });
+
+            navigator.clipboard.writeText(textDigest).then(() => {
+                if (copyCompetitorsText) copyCompetitorsText.textContent = "✓ Digest Copied!";
+                copyCompetitorsBtn.classList.add('border-emerald-500', 'text-emerald-500');
+                setTimeout(() => {
+                    if (copyCompetitorsText) copyCompetitorsText.textContent = "Copy Competitors Digest";
+                    copyCompetitorsBtn.classList.remove('border-emerald-500', 'text-emerald-500');
+                }, 2200);
+            }).catch(err => {
+                console.error("Clipboard copy failed:", err);
+            });
+        });
+    }
+
+    if (editAuditFromModalBtn) {
+        editAuditFromModalBtn.addEventListener('click', () => {
+            if (activeAuditProposalHash) {
+                toggleAuditModal(false);
+                openAuditStagingEditor(activeAuditProposalHash);
+            } else {
+                alert("No proposal record found to edit this audit.");
+            }
+        });
+    }
+
     // Populate audit modal with sentiment, visibility gaps, and competitor analysis
     function handleViewAudit(clientId) {
         const rec = loadedProposals.find(r => r.client_id === clientId);
         if (!rec || !rec.audit_raw_json) return;
 
+        activeAuditProposalHash = rec.proposal_hash || "";
+
         try {
             const audit = JSON.parse(rec.audit_raw_json);
+            activeAuditCompanyName = rec.company_name || "Target Business";
             auditModalTitle.textContent = `Market Visibility Audit — ${rec.company_name}`;
             auditSentiment.textContent = audit.online_sentiment_review || "No sentiment details generated.";
 
@@ -654,14 +750,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             auditCompetitors.innerHTML = '';
-            if (audit.competitor_analysis && audit.competitor_analysis.length > 0) {
-                audit.competitor_analysis.forEach(comp => {
+            activeAuditCompetitors = audit.competitor_analysis || [];
+
+            if (activeAuditCompetitors && activeAuditCompetitors.length > 0) {
+                activeAuditCompetitors.forEach(comp => {
                     const col = document.createElement('div');
-                    col.className = "bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 space-y-2 text-left";
+                    col.className = "bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3 text-left flex flex-col justify-between hover:border-zinc-300 dark:hover:border-zinc-700 transition-all";
+                    
+                    const faviconUrl = getFaviconUrl(comp.name);
+                    const faviconHtml = faviconUrl 
+                        ? `<img src="${faviconUrl}" class="w-5 h-5 rounded-md object-contain bg-white dark:bg-zinc-800 p-0.5 border border-zinc-200 dark:border-zinc-700 shrink-0" alt="${comp.name} logo" onerror="this.style.display='none'" />` 
+                        : `<div class="w-5 h-5 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 text-zinc-400"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4 4h4m-4 0H7"></path></svg></div>`;
+
+                    const isAnchor = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input";
+                    const badgeHtml = isAnchor
+                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Sales Anchor</span>`
+                        : `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> AI Discovered</span>`;
+
                     col.innerHTML = `
-                        <h5 class="text-xs font-bold text-black dark:text-white uppercase">${comp.name}</h5>
-                        <span class="inline-block px-2 py-0.5 text-[9px] font-extrabold uppercase bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded text-zinc-750 dark:text-zinc-400">${comp.platform_leveraged || 'Presence'}</span>
-                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">${comp.revenue_advantage}</p>
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    ${faviconHtml}
+                                    <h5 class="text-xs font-bold text-black dark:text-white uppercase truncate tracking-tight">${comp.name}</h5>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 items-center">
+                                ${badgeHtml}
+                                <span class="inline-block px-2 py-0.5 text-[9px] font-extrabold uppercase bg-zinc-200/60 dark:bg-zinc-800 border border-zinc-300/40 dark:border-zinc-700 rounded text-zinc-700 dark:text-zinc-300">${comp.platform_leveraged || 'Presence'}</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium pt-1">${comp.revenue_advantage}</p>
+                        </div>
                     `;
                     auditCompetitors.appendChild(col);
                 });
@@ -1173,10 +1292,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${priorityBadge}
                     </td>
                     <td class="px-6 py-4">${statusBadge}</td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <button onclick="inspectClientDetails(${item.client_id})" class="px-3 py-1.5 bg-black dark:bg-white text-white dark:text-black rounded-lg text-xs font-bold hover:opacity-90 transition-opacity">Inspect</button>
-                        <button onclick="copyProposalUrl('${item.proposal_hash}')" class="px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 rounded-lg text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 transition-colors">Copy Link</button>
-                        <button onclick="deleteClientRow(${item.client_id})" class="px-3 py-1.5 bg-red-600/10 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white rounded-lg text-xs font-bold transition-colors">Delete</button>
+                    <td class="px-6 py-4 text-right flex justify-end items-center gap-2">
+                        <button onclick="openAuditStagingEditor('${item.proposal_hash}')" class="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 hover:border-blue-500/40 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Edit Audit
+                        </button>
+                        <button onclick="inspectClientDetails(${item.client_id})" class="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Inspect
+                        </button>
+                        <button onclick="copyProposalUrl('${item.proposal_hash}')" class="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Copy Link
+                        </button>
+                        <button onclick="deleteClientRow(${item.client_id})" class="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg text-xs font-bold transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete
+                        </button>
                     </td>
                 </tr>`;
         }).join('');
@@ -1277,6 +1409,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const linkContainer = document.getElementById('drawerProposalLinkContainer');
         linkContainer.innerHTML = client.proposal_hash ? `
             <a href="proposals.html?id=${client.proposal_hash}" target="_blank" class="block w-full text-center bg-black dark:bg-white text-white dark:text-black py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity">Open Active Proposal</a>
+            <button onclick="openAuditStagingEditor('${client.proposal_hash}')" class="w-full text-center bg-blue-600 text-white py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors mt-2 flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Edit Audit (Staging Mode)
+            </button>
         ` : `<p class="text-xs text-zinc-400">No proposal link generated.</p>`;
 
         if (client.audit_raw_json) {
@@ -1443,6 +1579,77 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+
+    function getDealValue(rec) {
+        if (rec.client_status === 'Proposal signed' && rec.final_price) {
+            return Number(rec.final_price);
+        }
+        return Number(rec.budget || rec.final_price || 0);
+    }
+
+    function getStatusRank(status) {
+        const s = (status || '').toLowerCase();
+        if (s.includes('generated')) return 1;
+        if (s.includes('sent')) return 2;
+        if (s.includes('viewed')) return 3;
+        if (s.includes('signed')) return 4;
+        if (s.includes('declined')) return 5;
+        return 0;
+    }
+
+    function populateIndustryFilterOptions(records) {
+        const select = document.getElementById('industryFilterSelect');
+        if (!select) return;
+        const currentVal = currentIndustryFilter || 'All';
+        const industries = Array.from(new Set(records.map(r => r.industry).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+        
+        let html = `<option value="All">All Industries</option>`;
+        industries.forEach(ind => {
+            const selected = currentVal === ind ? 'selected' : '';
+            html += `<option value="${ind.replace(/"/g, '&quot;')}" ${selected}>${ind}</option>`;
+        });
+        select.innerHTML = html;
+        select.value = currentVal;
+    }
+
+    function updateSortHeaderIcons() {
+        const headerMap = {
+            'company': document.getElementById('thCompany'),
+            'industry': document.getElementById('thIndustry'),
+            'value': document.getElementById('thValue'),
+            'priority': document.getElementById('thPriority'),
+            'status': document.getElementById('thStatus')
+        };
+
+        const defaultSvg = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />`;
+        const ascSvg = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />`;
+        const descSvg = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />`;
+
+        Object.entries(headerMap).forEach(([field, el]) => {
+            if (!el) return;
+            const svgEl = el.querySelector('svg');
+            if (!svgEl) return;
+
+            if (currentSortField === field) {
+                el.classList.add('text-black', 'dark:text-white');
+                svgEl.classList.remove('text-zinc-400');
+                svgEl.classList.add('text-blue-500', 'dark:text-blue-400');
+                if (currentSortDirection === 'asc') {
+                    svgEl.innerHTML = ascSvg;
+                } else if (currentSortDirection === 'desc') {
+                    svgEl.innerHTML = descSvg;
+                } else {
+                    svgEl.innerHTML = defaultSvg;
+                }
+            } else {
+                el.classList.remove('text-black', 'dark:text-white');
+                svgEl.classList.remove('text-blue-500', 'dark:text-blue-400');
+                svgEl.classList.add('text-zinc-400');
+                svgEl.innerHTML = defaultSvg;
+            }
+        });
+    }
+
     function renderTableRows(records) {
         // Hydrate priority from records or local override, defaulting to Medium
         const priorityOverrides = getSavedPriorityOverrides();
@@ -1454,22 +1661,59 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.updateComboboxDbIndustries) {
             window.updateComboboxDbIndustries(loadedProposals);
         }
+
+        populateIndustryFilterOptions(loadedProposals);
         proposalsTableBody.innerHTML = '';
 
-        // Apply Priority Filter if selected
+        // Apply Filters (Industry, Value, Priority, Status)
         let displayRecords = [...loadedProposals];
-        if (currentPriorityFilter !== 'All') {
+
+        if (currentIndustryFilter && currentIndustryFilter !== 'All') {
+            displayRecords = displayRecords.filter(r => (r.industry || '').toLowerCase() === currentIndustryFilter.toLowerCase());
+        }
+
+        if (currentValueFilter && currentValueFilter !== 'All') {
+            displayRecords = displayRecords.filter(r => {
+                const val = getDealValue(r);
+                if (currentValueFilter === 'under5k') return val < 5000;
+                if (currentValueFilter === '5k-15k') return val >= 5000 && val <= 15000;
+                if (currentValueFilter === 'over15k') return val > 15000;
+                return true;
+            });
+        }
+
+        if (currentPriorityFilter && currentPriorityFilter !== 'All') {
             displayRecords = displayRecords.filter(r => (r.priority || 'Medium').toLowerCase() === currentPriorityFilter.toLowerCase());
         }
 
-        // Apply Priority Header Sorting if active
-        if (prioritySortDirection) {
+        if (currentStatusFilter && currentStatusFilter !== 'All') {
+            displayRecords = displayRecords.filter(r => (r.client_status || '').toLowerCase() === currentStatusFilter.toLowerCase());
+        }
+
+        // Apply Header Sorting if active
+        if (currentSortField) {
             displayRecords.sort((a, b) => {
-                const rankA = getPriorityRank(a.priority);
-                const rankB = getPriorityRank(b.priority);
-                return prioritySortDirection === 'desc' ? rankB - rankA : rankA - rankB;
+                let res = 0;
+                if (currentSortField === 'company') {
+                    const nameA = (a.company_name || a.client_name || '').toLowerCase();
+                    const nameB = (b.company_name || b.client_name || '').toLowerCase();
+                    res = nameA.localeCompare(nameB);
+                } else if (currentSortField === 'industry') {
+                    const indA = (a.industry || '').toLowerCase();
+                    const indB = (b.industry || '').toLowerCase();
+                    res = indA.localeCompare(indB);
+                } else if (currentSortField === 'value') {
+                    res = getDealValue(a) - getDealValue(b);
+                } else if (currentSortField === 'priority') {
+                    res = getPriorityRank(a.priority) - getPriorityRank(b.priority);
+                } else if (currentSortField === 'status') {
+                    res = getStatusRank(a.client_status) - getStatusRank(b.client_status);
+                }
+                return currentSortDirection === 'desc' ? -res : res;
             });
         }
+
+        updateSortHeaderIcons();
 
         if (!displayRecords || displayRecords.length === 0) {
             proposalsTableBody.innerHTML = `
@@ -1529,10 +1773,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </select>
                 </td>
                 <td class="px-6 py-4 text-zinc-500 dark:text-zinc-400 font-medium">
-                    <div class="flex items-center gap-3">
-                        ${rec.proposal_hash ? `<a href="proposals.html?id=${rec.proposal_hash}" target="_blank" class="text-xs font-bold underline uppercase text-zinc-400 hover:text-black dark:hover:text-white">View Link</a>` : '--'}
-                        ${rec.audit_raw_json ? `<button data-client-id="${rec.client_id}" class="btn-view-audit text-xs font-bold underline uppercase text-zinc-400 hover:text-black dark:hover:text-white">View Audit</button>` : ''}
-                        <button data-client-id="${rec.client_id}" class="btn-delete text-xs font-bold underline uppercase text-red-500 hover:text-red-700">Delete</button>
+                    <div class="flex items-center gap-2">
+                        ${rec.proposal_hash ? `<a href="proposals.html?id=${rec.proposal_hash}" target="_blank" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white/5 dark:bg-white/5 hover:bg-white/10 dark:hover:bg-white/15 text-zinc-300 hover:text-white border border-white/10 dark:border-white/10 hover:border-white/20 transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            View Link
+                        </a>` : '--'}
+                        ${rec.proposal_hash ? `<button data-hash="${rec.proposal_hash}" class="btn-edit-audit px-2.5 py-1.5 rounded-lg text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Edit Audit
+                        </button>` : ''}
+                        ${rec.audit_raw_json ? `<button data-client-id="${rec.client_id}" class="btn-view-audit px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white/5 dark:bg-white/5 hover:bg-white/10 dark:hover:bg-white/15 text-zinc-300 hover:text-white border border-white/10 dark:border-white/10 hover:border-white/20 transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            View Audit
+                        </button>` : ''}
+                        <button data-client-id="${rec.client_id}" class="btn-delete px-2.5 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 transition-all duration-150 active:scale-[0.97] backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Delete
+                        </button>
                     </div>
                 </td>
             `;
@@ -1644,11 +1901,30 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (e.target.classList.contains('btn-view-audit')) {
                 const clientId = parseInt(e.target.getAttribute('data-client-id'));
                 handleViewAudit(clientId);
+            } else if (e.target.classList.contains('btn-edit-audit')) {
+                const hash = e.target.getAttribute('data-hash');
+                openAuditStagingEditor(hash);
             }
         });
     }
 
-    // Set up Priority Filter & Priority Header Sort handlers
+    // Set up Home Dashboard Filters (Industry, Value, Priority, Status)
+    const industryFilterSelect = document.getElementById('industryFilterSelect');
+    if (industryFilterSelect) {
+        industryFilterSelect.addEventListener('change', (e) => {
+            currentIndustryFilter = e.target.value;
+            renderTableRows(loadedProposals);
+        });
+    }
+
+    const valueFilterSelect = document.getElementById('valueFilterSelect');
+    if (valueFilterSelect) {
+        valueFilterSelect.addEventListener('change', (e) => {
+            currentValueFilter = e.target.value;
+            renderTableRows(loadedProposals);
+        });
+    }
+
     const priorityFilterSelect = document.getElementById('priorityFilterSelect');
     if (priorityFilterSelect) {
         priorityFilterSelect.addEventListener('change', (e) => {
@@ -1657,17 +1933,557 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const thPriority = document.getElementById('thPriority');
-    if (thPriority) {
-        thPriority.addEventListener('click', () => {
-            if (!prioritySortDirection || prioritySortDirection === 'asc') {
-                prioritySortDirection = 'desc';
-            } else {
-                prioritySortDirection = 'asc';
-            }
+    const statusFilterSelect = document.getElementById('statusFilterSelect');
+    if (statusFilterSelect) {
+        statusFilterSelect.addEventListener('change', (e) => {
+            currentStatusFilter = e.target.value;
             renderTableRows(loadedProposals);
         });
     }
+
+    // Set up Home Dashboard Header Column Sort Click Handlers
+    function bindSortHeader(elementId, sortField) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.addEventListener('click', () => {
+                if (currentSortField === sortField) {
+                    if (currentSortDirection === 'asc') {
+                        currentSortDirection = 'desc';
+                    } else if (currentSortDirection === 'desc') {
+                        currentSortField = null;
+                        currentSortDirection = null;
+                    } else {
+                        currentSortDirection = 'asc';
+                    }
+                } else {
+                    currentSortField = sortField;
+                    currentSortDirection = 'asc';
+                }
+                renderTableRows(loadedProposals);
+            });
+        }
+    }
+
+    bindSortHeader('thCompany', 'company');
+    bindSortHeader('thIndustry', 'industry');
+    bindSortHeader('thValue', 'value');
+    bindSortHeader('thPriority', 'priority');
+    bindSortHeader('thStatus', 'status');
+
+    // ==========================================
+    // STAGING AUDIT EDITOR & AI COPILOT LOGIC
+    // ==========================================
+    let currentStagingHash = null;
+    let currentStagingRecord = null;
+    let currentStagingAudit = null;
+
+    const auditStagingModal = document.getElementById('auditStagingEditorModal');
+    const closeStagingHeaderBtn = document.getElementById('closeStagingEditorHeaderBtn');
+    const closeStagingFooterBtn = document.getElementById('closeStagingEditorBtn');
+    const saveStagingBtn = document.getElementById('saveStagingAuditBtn');
+    const rerunCompetitorsBtn = document.getElementById('rerunCompetitorsBtn');
+    const addGapBtn = document.getElementById('addGapBtn');
+    const copilotForm = document.getElementById('copilotForm');
+    const copilotPromptInput = document.getElementById('copilotPromptInput');
+    const copilotChatFeed = document.getElementById('copilotChatFeed');
+    const stagingStatusMessage = document.getElementById('stagingStatusMessage');
+
+    function toggleStagingModal(show) {
+        if (auditStagingModal) {
+            auditStagingModal.classList.toggle('hidden', !show);
+            if (!show) {
+                currentStagingHash = null;
+                currentStagingRecord = null;
+                currentStagingAudit = null;
+                if (stagingStatusMessage) stagingStatusMessage.textContent = "";
+            }
+        }
+    }
+
+    if (closeStagingHeaderBtn) closeStagingHeaderBtn.addEventListener('click', () => toggleStagingModal(false));
+    if (closeStagingFooterBtn) closeStagingFooterBtn.addEventListener('click', () => toggleStagingModal(false));
+    window.addEventListener('click', (e) => {
+        if (e.target === auditStagingModal) toggleStagingModal(false);
+    });
+
+    window.openAuditStagingEditor = function(proposalHash) {
+        if (!proposalHash) {
+            alert("No proposal record found for this client.");
+            return;
+        }
+
+        const rec = loadedProposals.find(p => p.proposal_hash === proposalHash);
+        if (!rec) {
+            alert("Unable to locate client proposal record.");
+            return;
+        }
+
+        currentStagingHash = proposalHash;
+        currentStagingRecord = rec;
+
+        try {
+            currentStagingAudit = typeof rec.audit_raw_json === 'string' ? JSON.parse(rec.audit_raw_json) : rec.audit_raw_json;
+        } catch (e) {
+            currentStagingAudit = {
+                overall_score: 32,
+                scores: [32, 20, 38, 25],
+                online_sentiment_review: "",
+                competitor_analysis: [],
+                visibility_gaps: [],
+                competitor_benchmarks: "",
+                rep_notes: "",
+                chat_history: []
+            };
+        }
+
+        // Set Client subtitle
+        const nameSpan = document.getElementById('stagingClientNameSpan');
+        if (nameSpan) nameSpan.textContent = `${rec.client_name || rec.company_name} (${rec.company_name})`;
+
+        // Populate Scores
+        const overallScoreEl = document.getElementById('stagingOverallScore');
+        if (overallScoreEl) overallScoreEl.value = currentStagingAudit.overall_score || 32;
+
+        const scoresArr = currentStagingAudit.scores || [32, 20, 38, 25];
+        const sSeo = document.getElementById('stagingScoreSEO');
+        const sGeo = document.getElementById('stagingScoreGEO');
+        const sCwv = document.getElementById('stagingScoreCWV');
+        const sSchema = document.getElementById('stagingScoreSchema');
+
+        if (sSeo) sSeo.value = scoresArr[0] !== undefined ? scoresArr[0] : 32;
+        if (sGeo) sGeo.value = scoresArr[1] !== undefined ? scoresArr[1] : 20;
+        if (sCwv) sCwv.value = scoresArr[2] !== undefined ? scoresArr[2] : 38;
+        if (sSchema) sSchema.value = scoresArr[3] !== undefined ? scoresArr[3] : 25;
+
+        // Populate Sentiment Review
+        const sentimentEl = document.getElementById('stagingSentimentInput');
+        if (sentimentEl) sentimentEl.value = currentStagingAudit.online_sentiment_review || "";
+
+        // Populate Competitor Inputs
+        const compList = currentStagingAudit.competitors_list || (currentStagingAudit.competitor_analysis || []).map(c => c.name);
+        const c1 = document.getElementById('stagingComp1');
+        const c2 = document.getElementById('stagingComp2');
+        const c3 = document.getElementById('stagingComp3');
+
+        if (c1) c1.value = compList[0] || "";
+        if (c2) c2.value = compList[1] || "";
+        if (c3) c3.value = compList[2] || "";
+
+        // Populate Competitor Benchmark Summary
+        const benchEl = document.getElementById('stagingBenchmarkInput');
+        if (benchEl) benchEl.value = currentStagingAudit.competitor_benchmarks || "";
+
+        // Populate Visibility Gaps
+        renderStagingGapsList(currentStagingAudit.visibility_gaps || []);
+
+        // Populate Sales Rep Internal Notes
+        const notesEl = document.getElementById('stagingRepNotesInput');
+        if (notesEl) notesEl.value = currentStagingAudit.rep_notes || "";
+
+        // Render AI Copilot Chat Feed
+        renderCopilotChatFeed(currentStagingAudit.chat_history || []);
+
+        // Reset Sub-Tab to Overview & Scores on open
+        switchStagingTab('scores');
+
+        toggleStagingModal(true);
+    };
+
+    function switchStagingTab(tabName) {
+        const subtabBtns = document.querySelectorAll('.stagingSubtabBtn');
+        const subtabViews = document.querySelectorAll('.stagingSubtabView');
+
+        subtabBtns.forEach(btn => {
+            const isTarget = btn.getAttribute('data-tab') === tabName;
+            if (isTarget) {
+                btn.className = "stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-black dark:bg-white text-white dark:text-black shadow-sm flex items-center gap-1.5";
+            } else {
+                btn.className = "stagingSubtabBtn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-all flex items-center gap-1.5";
+            }
+        });
+
+        subtabViews.forEach(view => {
+            if (tabName === 'viewAll') {
+                view.classList.remove('hidden');
+            } else {
+                const targetViewId = `stagingView${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+                if (view.id === targetViewId) {
+                    view.classList.remove('hidden');
+                } else {
+                    view.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    function initStagingSubtabs() {
+        const subtabBtns = document.querySelectorAll('.stagingSubtabBtn');
+        subtabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+                switchStagingTab(targetTab);
+            });
+        });
+    }
+
+    initStagingSubtabs();
+
+    function renderStagingGapsList(gaps) {
+        const container = document.getElementById('stagingGapsContainer');
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (!gaps || gaps.length === 0) {
+            gaps = ["Lack of local Schema.org entity metadata", "Mobile Core Web Vitals latency causing high bounce rate"];
+        }
+
+        gaps.forEach((gapText, idx) => {
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-2";
+            row.innerHTML = `
+                <input type="text" class="staging-gap-item flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-xs text-black dark:text-white font-medium focus:outline-none focus:border-zinc-400"
+                       value="${gapText.replace(/"/g, '&quot;')}" placeholder="Describe visibility gap...">
+                <button type="button" class="btn-remove-gap text-zinc-400 hover:text-red-500 p-2 rounded-lg transition-colors" title="Delete gap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            `;
+            row.querySelector('.btn-remove-gap').addEventListener('click', () => row.remove());
+            container.appendChild(row);
+        });
+    }
+
+    if (addGapBtn) {
+        addGapBtn.addEventListener('click', () => {
+            const container = document.getElementById('stagingGapsContainer');
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = "flex items-center gap-2";
+            row.innerHTML = `
+                <input type="text" class="staging-gap-item flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-lg p-2.5 text-xs text-black dark:text-white font-medium focus:outline-none focus:border-zinc-400"
+                       placeholder="Enter new audit visibility gap...">
+                <button type="button" class="btn-remove-gap text-zinc-400 hover:text-red-500 p-2 rounded-lg transition-colors" title="Delete gap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            `;
+            row.querySelector('.btn-remove-gap').addEventListener('click', () => row.remove());
+            container.appendChild(row);
+            row.querySelector('input').focus();
+        });
+    }
+
+    // Save Staged Audit Handler
+    if (saveStagingBtn) {
+        saveStagingBtn.addEventListener('click', () => {
+            if (!currentStagingHash) return;
+
+            const overall_score = parseInt(document.getElementById('stagingOverallScore').value || 32, 10);
+            const seo = parseInt(document.getElementById('stagingScoreSEO').value || 32, 10);
+            const geo = parseInt(document.getElementById('stagingScoreGEO').value || 20, 10);
+            const cwv = parseInt(document.getElementById('stagingScoreCWV').value || 38, 10);
+            const schema = parseInt(document.getElementById('stagingScoreSchema').value || 25, 10);
+            
+            const online_sentiment_review = document.getElementById('stagingSentimentInput').value.trim();
+            const competitor_benchmarks = document.getElementById('stagingBenchmarkInput').value.trim();
+            const rep_notes = document.getElementById('stagingRepNotesInput').value.trim();
+
+            const c1 = document.getElementById('stagingComp1')?.value.trim();
+            const c2 = document.getElementById('stagingComp2')?.value.trim();
+            const c3 = document.getElementById('stagingComp3')?.value.trim();
+            const competitors_list = [c1, c2, c3].filter(Boolean);
+
+            const gapInputs = Array.from(document.querySelectorAll('.staging-gap-item'));
+            const visibility_gaps = gapInputs.map(input => input.value.trim()).filter(Boolean);
+
+            saveStagingBtn.disabled = true;
+            saveStagingBtn.textContent = "Saving Staged Audit...";
+
+            fetch(`${API_BASE}/api/admin/proposals/${currentStagingHash}/audit`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    overall_score,
+                    scores: [seo, geo, cwv, schema],
+                    online_sentiment_review,
+                    visibility_gaps,
+                    competitor_benchmarks,
+                    rep_notes,
+                    competitors_list
+                })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to persist audit edits.");
+                    return res.json();
+                })
+                .then(data => {
+                    if (stagingStatusMessage) {
+                        stagingStatusMessage.textContent = "✓ Staged audit saved cleanly!";
+                        stagingStatusMessage.className = "text-xs font-bold text-emerald-500 animate-pulse";
+                    }
+                    if (currentStagingRecord) {
+                        currentStagingRecord.audit_raw_json = JSON.stringify(data.audit_data);
+                    }
+                    loadDashboardData();
+                    setTimeout(() => toggleStagingModal(false), 1200);
+                })
+                .catch(err => {
+                    alert(`Error saving staged audit: ${err.message}`);
+                })
+                .finally(() => {
+                    saveStagingBtn.disabled = false;
+                    saveStagingBtn.textContent = "Save Draft";
+                });
+        });
+    }
+
+    // Transpose Audit & Re-align Scope Handler
+    const transposeAuditBtn = document.getElementById('transposeAuditToProposalBtn');
+    if (transposeAuditBtn) {
+        transposeAuditBtn.addEventListener('click', () => {
+            if (!currentStagingHash) return;
+
+            const overall_score = parseInt(document.getElementById('stagingOverallScore')?.value || 32, 10);
+            const seo = parseInt(document.getElementById('stagingScoreSEO')?.value || 32, 10);
+            const geo = parseInt(document.getElementById('stagingScoreGEO')?.value || 20, 10);
+            const cwv = parseInt(document.getElementById('stagingScoreCWV')?.value || 38, 10);
+            const schema = parseInt(document.getElementById('stagingScoreSchema')?.value || 25, 10);
+
+            const online_sentiment_review = document.getElementById('stagingSentimentInput')?.value.trim() || "";
+            const competitor_benchmarks = document.getElementById('stagingBenchmarkInput')?.value.trim() || "";
+            const rep_notes = document.getElementById('stagingRepNotesInput')?.value.trim() || "";
+
+            const c1 = document.getElementById('stagingComp1')?.value.trim();
+            const c2 = document.getElementById('stagingComp2')?.value.trim();
+            const c3 = document.getElementById('stagingComp3')?.value.trim();
+            const competitors_list = [c1, c2, c3].filter(Boolean);
+
+            const gapInputs = Array.from(document.querySelectorAll('.staging-gap-item'));
+            const visibility_gaps = gapInputs.map(input => input.value.trim()).filter(Boolean);
+
+            const transposeBtnText = document.getElementById('transposeBtnText');
+            const syncBadge = document.getElementById('syncBadge');
+
+            transposeAuditBtn.disabled = true;
+            if (transposeBtnText) transposeBtnText.textContent = "Transposing & Re-aligning Scope...";
+
+            fetch(`${API_BASE}/api/admin/proposals/${currentStagingHash}/transpose`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    overall_score,
+                    scores: [seo, geo, cwv, schema],
+                    online_sentiment_review,
+                    visibility_gaps,
+                    competitor_benchmarks,
+                    rep_notes,
+                    competitors_list,
+                    recalculate_services: true
+                })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to transpose audit to live proposal.");
+                    return res.json();
+                })
+                .then(data => {
+                    if (stagingStatusMessage) {
+                        stagingStatusMessage.textContent = "✓ Audit transposed & proposal scope re-aligned!";
+                        stagingStatusMessage.className = "text-xs font-bold text-emerald-500 animate-pulse";
+                    }
+                    if (syncBadge) {
+                        syncBadge.classList.remove('hidden');
+                    }
+                    if (currentStagingRecord) {
+                        currentStagingRecord.audit_raw_json = JSON.stringify(data.audit_data);
+                        currentStagingRecord.final_price = data.final_price;
+                    }
+                    loadDashboardData();
+                    appendCopilotMessage("model", `Success! Audit transposed to live proposal. Recommended services re-aligned (New total: R${data.final_price.toLocaleString()}).`);
+                })
+                .catch(err => {
+                    alert(`Transposition error: ${err.message}`);
+                })
+                .finally(() => {
+                    transposeAuditBtn.disabled = false;
+                    if (transposeBtnText) transposeBtnText.textContent = "Update & Transpose to Proposal";
+                });
+        });
+    }
+
+    // Rerun Competitors Engine Handler
+    if (rerunCompetitorsBtn) {
+        rerunCompetitorsBtn.addEventListener('click', () => {
+            if (!currentStagingHash) return;
+
+            const c1 = document.getElementById('stagingComp1')?.value.trim();
+            const c2 = document.getElementById('stagingComp2')?.value.trim();
+            const c3 = document.getElementById('stagingComp3')?.value.trim();
+            const competitors = [c1, c2, c3].filter(Boolean);
+
+            if (competitors.length === 0) {
+                alert("Please enter at least 1 competitor name to rerun the AI audit.");
+                return;
+            }
+
+            const btnText = document.getElementById('rerunBtnText');
+            rerunCompetitorsBtn.disabled = true;
+            if (btnText) btnText.textContent = "Re-analyzing Competitors...";
+
+            fetch(`${API_BASE}/api/admin/proposals/${currentStagingHash}/rerun-competitors`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ competitors })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Competitor AI rerun operational failure.");
+                    return res.json();
+                })
+                .then(data => {
+                    if (currentStagingAudit) {
+                        currentStagingAudit.competitor_analysis = data.competitor_analysis;
+                        currentStagingAudit.competitor_benchmarks = data.competitor_benchmarks;
+                        currentStagingAudit.competitors_list = data.competitors_list;
+                    }
+                    const benchInput = document.getElementById('stagingBenchmarkInput');
+                    if (benchInput) benchInput.value = data.competitor_benchmarks || "";
+
+                    appendCopilotMessage("model", `Competitor Audit Rerun Complete!\nUpdated market benchmark analysis for direct targets: ${competitors.join(', ')}.`);
+                    if (stagingStatusMessage) {
+                        stagingStatusMessage.textContent = "Competitor AI audit re-analyzed cleanly!";
+                        stagingStatusMessage.className = "text-xs font-bold text-purple-500";
+                    }
+                })
+                .catch(err => {
+                    alert(`Competitor rerun failed: ${err.message}`);
+                })
+                .finally(() => {
+                    rerunCompetitorsBtn.disabled = false;
+                    if (btnText) btnText.textContent = "Rerun AI Competitor Audit";
+                });
+        });
+    }
+
+    // AI Copilot Chat Handlers
+    function renderCopilotChatFeed(chatHistory) {
+        if (!copilotChatFeed) return;
+        copilotChatFeed.innerHTML = `
+            <div class="p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1.5 text-zinc-700 dark:text-zinc-300">
+                <span class="font-bold text-blue-500 flex items-center gap-1.5 text-[10px] uppercase">
+                    <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Gemini Copilot Ready
+                </span>
+                <p class="leading-relaxed">
+                    Welcome! I am your AI Audit Copilot. Ask me to research issues, draft pitch angles, or polish audit copy for this client.
+                </p>
+            </div>
+        `;
+
+        if (chatHistory && chatHistory.length > 0) {
+            chatHistory.forEach(msg => {
+                appendCopilotMessage(msg.role, msg.text, false);
+            });
+        }
+        copilotChatFeed.scrollTop = copilotChatFeed.scrollHeight;
+    }
+
+    function appendCopilotMessage(role, text, scroll = true) {
+        if (!copilotChatFeed) return;
+
+        const card = document.createElement('div');
+        const isUser = role === 'user';
+
+        card.className = isUser
+            ? "p-3 rounded-xl bg-blue-600 text-white ml-6 space-y-1 shadow-sm"
+            : "p-3.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2 text-zinc-700 dark:text-zinc-300 shadow-sm";
+
+        const formattedText = text.replace(/\n/g, '<br>');
+
+        if (isUser) {
+            card.innerHTML = `
+                <div class="flex justify-between items-center text-[10px] font-bold opacity-80 uppercase">
+                    <span>Sales Rep</span>
+                </div>
+                <p class="leading-relaxed font-medium">${formattedText}</p>
+            `;
+        } else {
+            card.innerHTML = `
+                <div class="flex justify-between items-center text-[10px] font-bold text-blue-500 uppercase">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Gemini Copilot
+                    </span>
+                </div>
+                <div class="leading-relaxed font-medium text-xs space-y-1">${formattedText}</div>
+                <div class="pt-2 flex gap-2 border-t border-zinc-200/60 dark:border-zinc-800">
+                    <button type="button" class="btn-copilot-copy text-[10px] font-bold px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        Copy Text
+                    </button>
+                    <button type="button" class="btn-copilot-apply text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Apply to Sentiment Summary
+                    </button>
+                </div>
+            `;
+
+            card.querySelector('.btn-copilot-copy')?.addEventListener('click', () => {
+                navigator.clipboard.writeText(text).then(() => alert("Copilot advice copied to clipboard!"));
+            });
+
+            card.querySelector('.btn-copilot-apply')?.addEventListener('click', () => {
+                const sentimentInput = document.getElementById('stagingSentimentInput');
+                if (sentimentInput) {
+                    sentimentInput.value = text;
+                    alert("Applied Copilot text to Online Sentiment Review!");
+                }
+            });
+        }
+
+        copilotChatFeed.appendChild(card);
+        if (scroll) copilotChatFeed.scrollTop = copilotChatFeed.scrollHeight;
+    }
+
+    if (copilotForm) {
+        copilotForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const prompt = copilotPromptInput.value.trim();
+            if (!prompt || !currentStagingHash) return;
+
+            appendCopilotMessage('user', prompt);
+            copilotPromptInput.value = "";
+
+            const sendBtn = document.getElementById('sendCopilotBtn');
+            if (sendBtn) sendBtn.disabled = true;
+
+            fetch(`${API_BASE}/api/admin/proposals/${currentStagingHash}/ai-copilot`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("AI Copilot request failed.");
+                    return res.json();
+                })
+                .then(data => {
+                    appendCopilotMessage('model', data.copilot_response);
+                })
+                .catch(err => {
+                    appendCopilotMessage('model', `⚠️ Copilot Error: ${err.message}`);
+                })
+                .finally(() => {
+                    if (sendBtn) sendBtn.disabled = false;
+                });
+        });
+    }
+
+    // Quick prompt chips event listener
+    document.querySelectorAll('.copilotChip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const promptText = chip.getAttribute('data-prompt');
+            if (promptText && copilotPromptInput) {
+                copilotPromptInput.value = promptText;
+                copilotForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    });
 
     loadDashboardData();
 });
