@@ -285,19 +285,19 @@ def tag_competitors(data: Dict[str, Any], provided: List[str]) -> Dict[str, Any]
                 if not curr_name or not any(p.lower() in curr_name.lower() for p in [p_name]):
                     item["name"] = p_name
                 item["is_anchor"] = True
-                item["source_label"] = "Sales Rep Anchor Input"
+                item["source_label"] = "Direct Competitor"
             else:
                 comp_list.append({
                     "name": p_name,
                     "platform_leveraged": "Custom Funnels & SEO Hubs",
                     "revenue_advantage": "Captures high-intent market traffic and search leads.",
                     "is_anchor": True,
-                    "source_label": "Sales Rep Anchor Input"
+                    "source_label": "Direct Competitor"
                 })
 
         for idx in range(len(prov_clean), len(comp_list)):
             comp_list[idx]["is_anchor"] = False
-            comp_list[idx]["source_label"] = "AI Discovered Niche Competitor"
+            comp_list[idx]["source_label"] = "Market Competitor"
 
         benchmarks = data.get("competitor_benchmarks", "")
         if benchmarks and not any(p.lower() in benchmarks.lower() for p in prov_clean):
@@ -306,7 +306,7 @@ def tag_competitors(data: Dict[str, Any], provided: List[str]) -> Dict[str, Any]
     else:
         for item in comp_list:
             item["is_anchor"] = False
-            item["source_label"] = "AI Discovered Niche Competitor"
+            item["source_label"] = "Market Competitor"
 
     data["competitor_analysis"] = comp_list
     return data

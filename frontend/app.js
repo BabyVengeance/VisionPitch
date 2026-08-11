@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textDigest += `Synthesized by Apex VisionPitch Engine\n\n`;
 
             activeAuditCompetitors.forEach((comp, idx) => {
-                const badge = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input" ? "[Sales Rep Anchor Input]" : "[AI Discovered Competitor]";
+                const badge = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input" || comp.source_label === "Direct Competitor" ? "[Direct Competitor]" : "[Market Competitor]";
                 textDigest += `${idx + 1}. ${comp.name} ${badge}\n`;
                 textDigest += `   • Core Strategy: ${comp.platform_leveraged || 'Presence'}\n`;
                 textDigest += `   • Market Advantage: ${comp.revenue_advantage || 'High domain authority.'}\n\n`;
@@ -762,10 +762,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? `<img src="${faviconUrl}" class="w-5 h-5 rounded-md object-contain bg-white dark:bg-zinc-800 p-0.5 border border-zinc-200 dark:border-zinc-700 shrink-0" alt="${comp.name} logo" onerror="this.style.display='none'" />` 
                         : `<div class="w-5 h-5 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 text-zinc-400"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H7m4 4h4m-4 0H7"></path></svg></div>`;
 
-                    const isAnchor = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input";
+                    const isAnchor = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input" || comp.source_label === "Direct Competitor";
                     const badgeHtml = isAnchor
-                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Sales Anchor</span>`
-                        : `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> AI Discovered</span>`;
+                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Direct Competitor</span>`
+                        : `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 rounded-full shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Market Competitor</span>`;
 
                     col.innerHTML = `
                         <div class="space-y-2">

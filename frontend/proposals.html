@@ -609,10 +609,10 @@
                             ? `<img src="${faviconUrl}" class="w-5 h-5 rounded-md object-contain bg-white dark:bg-zinc-900 p-0.5 border border-zinc-200 dark:border-zinc-800 shrink-0" alt="${comp.name} logo" onerror="this.style.display='none'" />` 
                             : `<div class="w-5 h-5 rounded-md bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0">🏢</div>`;
 
-                        const isAnchor = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input";
+                        const isAnchor = comp.is_anchor || comp.source_label === "Sales Rep Anchor Input" || comp.source_label === "Direct Competitor";
                         const badgeHtml = isAnchor
-                            ? `<span class="text-[9px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Sales Anchor</span>`
-                            : `<span class="text-[9px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">AI Discovered</span>`;
+                            ? `<span class="text-[9px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Direct Competitor</span>`
+                            : `<span class="text-[9px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Market Competitor</span>`;
 
                         col.innerHTML = `
                             <div class="space-y-3">

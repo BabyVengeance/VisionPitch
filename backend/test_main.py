@@ -99,11 +99,11 @@ def test_run_ai_audit_with_partial_competitor_seeds():
     assert "Comp X" in comps_2
     assert "Comp Y" in comps_2
     assert res_2["competitor_analysis"][0]["is_anchor"] is True
-    assert res_2["competitor_analysis"][0]["source_label"] == "Sales Rep Anchor Input"
+    assert res_2["competitor_analysis"][0]["source_label"] == "Direct Competitor"
     assert res_2["competitor_analysis"][1]["is_anchor"] is True
-    assert res_2["competitor_analysis"][1]["source_label"] == "Sales Rep Anchor Input"
+    assert res_2["competitor_analysis"][1]["source_label"] == "Direct Competitor"
     assert res_2["competitor_analysis"][2]["is_anchor"] is False
-    assert res_2["competitor_analysis"][2]["source_label"] == "AI Discovered Niche Competitor"
+    assert res_2["competitor_analysis"][2]["source_label"] == "Market Competitor"
 
 
 def test_tag_competitors_enforces_sales_rep_names_over_generic():
@@ -119,7 +119,7 @@ def test_tag_competitors_enforces_sales_rep_names_over_generic():
     
     assert tagged["competitor_analysis"][0]["name"] == "sales_comp.co.za"
     assert tagged["competitor_analysis"][0]["is_anchor"] is True
-    assert tagged["competitor_analysis"][0]["source_label"] == "Sales Rep Anchor Input"
+    assert tagged["competitor_analysis"][0]["source_label"] == "Direct Competitor"
     assert tagged["competitor_analysis"][1]["is_anchor"] is False
     assert "sales_comp.co.za" in tagged["competitor_benchmarks"]
 
