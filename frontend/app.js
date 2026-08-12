@@ -2059,15 +2059,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const sentimentEl = document.getElementById('stagingSentimentInput');
         if (sentimentEl) sentimentEl.value = currentStagingAudit.online_sentiment_review || "";
 
-        // Populate Competitor Inputs
-        const compList = currentStagingAudit.competitors_list || (currentStagingAudit.competitor_analysis || []).map(c => c.name);
-        const c1 = document.getElementById('stagingComp1');
-        const c2 = document.getElementById('stagingComp2');
-        const c3 = document.getElementById('stagingComp3');
-
-        if (c1) c1.value = compList[0] || "";
-        if (c2) c2.value = compList[1] || "";
-        if (c3) c3.value = compList[2] || "";
+        // Populate Competitor Editor Tabs
+        renderCompetitorEditorTabs(currentStagingAudit);
+        switchCompetitorSubtab(0);
 
         // Populate Competitor Benchmark Summary
         const benchEl = document.getElementById('stagingBenchmarkInput');
@@ -2088,6 +2082,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleStagingModal(true);
     };
+
+    function renderCompetitorEditorTabs(audit) {
+        const compList = (audit && Array.isArray(audit.competitor_analysis)) ? audit.competitor_analysis : [];
+        const namesList = (audit && Array.isArray(audit.competitors_list)) ? audit.competitors_list : [];
+
+        for (let i = 0; i < 3; i++) {
+            const comp = compList[i] || {};
+            const compName = comp.name || namesList[i] || "";
+
+            const labelEl = document.getElementById(`compTabBtnLabel_${i}`);
+            if (labelEl) labelEl.textContent = compName.trim() ? compName.trim() : `Competitor ${i + 1}`;
+
+            const nameEl = document.getElementById(`stagingCompName_${i}`);
+            if (nameEl) nameEl.value = compName;
+
+            const platEl = document.getElementById(`stagingCompPlatform_${i}`);
+            if (platEl) platEl.value = comp.platform_leveraged || "";
+
+            const revEl = document.getElementById(`stagingCompRevenue_${i}`);
+            if (revEl) revEl.value = comp.revenue_advantage || "";
+
+            const defEl = document.getElementById(`stagingCompDeficit_${i}`);
+            if (defEl) defEl.value = comp.client_deficit || "";
+        }
+    }
+
+    function switchCompetitorSubtab(targetIdx) {
+        for (let i = 0; i < 3; i++) {
+            const btn = document.getElementById(`compTabBtn_${i}`);
+            const view = document.getElementById(`compSubtabView_${i}`);
+            const isTarget = (i === targetIdx);
+
+            if (btn) {
+                if (isTarget) {
+                    btn.className = "compSubtabBtn px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center gap-2 shadow-sm shrink-0";
+                } else {
+                    btn.className = "compSubtabBtn px-3.5 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent transition-all flex items-center gap-2 shrink-0";
+                }
+            }
+            if (view) {
+                view.classList.toggle('hidden', !isTarget);
+            }
+        }
+    }
+
+    function initCompetitorSubtabs() {
+        for (let i = 0; i < 3; i++) {
+            const btn = document.getElementById(`compTabBtn_${i}`);
+            if (btn) {
+                btn.addEventListener('click', () => switchCompetitorSubtab(i));
+            }
+
+            const nameInput = document.getElementById(`stagingCompName_${i}`);
+            if (nameInput) {
+                nameInput.addEventListener('input', (e) => {
+                    const labelEl = document.getElementById(`compTabBtnLabel_${i}`);
+                    if (labelEl) {
+                        const val = e.target.value.trim();
+                        labelEl.textContent = val ? val : `Competitor ${i + 1}`;
+                    }
+                });
+            }
+        }
+    }
+
+    initCompetitorSubtabs();
+
+    function collectCompetitorEditorData() {
+        const competitor_analysis = [];
+        const competitors_list = [];
+
+        for (let i = 0; i < 3; i++) {
+            const name = document.getElementById(`stagingCompName_${i}`)?.value.trim() || "";
+            const platform_leveraged = document.getElementById(`stagingCompPlatform_${i}`)?.value.trim() || "";
+            const revenue_advantage = document.getElementById(`stagingCompRevenue_${i}`)?.value.trim() || "";
+            const client_deficit = document.getElementById(`stagingCompDeficit_${i}`)?.value.trim() || "";
+
+            competitors_list.push(name);
+            competitor_analysis.push({
+                name: name || `Competitor ${i + 1}`,
+                platform_leveraged: platform_leveraged || "Digital Funnels & SEO Hubs",
+                revenue_advantage: revenue_advantage || "Captures high-intent market traffic and search leads.",
+                client_deficit: client_deficit || "Currently unoptimized against this competitor's search & lead conversion footprint.",
+                is_anchor: i === 0,
+                source_label: i === 0 ? "Direct Competitor" : "Market Competitor"
+            });
+        }
+
+        return { competitor_analysis, competitors_list };
+    }
+
+    function extractAuditCompetitorNames(audit) {
+        if (!audit) return ["", "", ""];
+        let names = ["", "", ""];
+
+        if (Array.isArray(audit.competitor_analysis) && audit.competitor_analysis.length > 0) {
+            audit.competitor_analysis.forEach((item, idx) => {
+                if (idx < 3) {
+                    const name = typeof item === 'string' ? item : (item?.name || "");
+                    if (name.trim()) names[idx] = name.trim();
+                }
+            });
+        }
+
+        if (Array.isArray(audit.competitors_list)) {
+            audit.competitors_list.forEach((item, idx) => {
+                if (idx < 3 && item && typeof item === 'string' && item.trim()) {
+                    if (!names[idx]) names[idx] = item.trim();
+                }
+            });
+        }
+
+        return names;
+    }
 
     function switchStagingTab(tabName) {
         const subtabBtns = document.querySelectorAll('.stagingSubtabBtn');
@@ -2186,10 +2294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const competitor_benchmarks = document.getElementById('stagingBenchmarkInput').value.trim();
             const rep_notes = document.getElementById('stagingRepNotesInput').value.trim();
 
-            const c1 = document.getElementById('stagingComp1')?.value.trim();
-            const c2 = document.getElementById('stagingComp2')?.value.trim();
-            const c3 = document.getElementById('stagingComp3')?.value.trim();
-            const competitors_list = [c1, c2, c3].filter(Boolean);
+            const { competitor_analysis, competitors_list } = collectCompetitorEditorData();
 
             const gapInputs = Array.from(document.querySelectorAll('.staging-gap-item'));
             const visibility_gaps = gapInputs.map(input => input.value.trim()).filter(Boolean);
@@ -2207,7 +2312,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     visibility_gaps,
                     competitor_benchmarks,
                     rep_notes,
-                    competitors_list
+                    competitors_list,
+                    competitor_analysis
                 })
             })
                 .then(res => {
@@ -2251,10 +2357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const competitor_benchmarks = document.getElementById('stagingBenchmarkInput')?.value.trim() || "";
             const rep_notes = document.getElementById('stagingRepNotesInput')?.value.trim() || "";
 
-            const c1 = document.getElementById('stagingComp1')?.value.trim();
-            const c2 = document.getElementById('stagingComp2')?.value.trim();
-            const c3 = document.getElementById('stagingComp3')?.value.trim();
-            const competitors_list = [c1, c2, c3].filter(Boolean);
+            const { competitor_analysis, competitors_list } = collectCompetitorEditorData();
 
             const gapInputs = Array.from(document.querySelectorAll('.staging-gap-item'));
             const visibility_gaps = gapInputs.map(input => input.value.trim()).filter(Boolean);
@@ -2276,6 +2379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     competitor_benchmarks,
                     rep_notes,
                     competitors_list,
+                    competitor_analysis,
                     recalculate_services: true
                 })
             })
@@ -2313,12 +2417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         rerunCompetitorsBtn.addEventListener('click', () => {
             if (!currentStagingHash) return;
 
-            const c1 = document.getElementById('stagingComp1')?.value.trim();
-            const c2 = document.getElementById('stagingComp2')?.value.trim();
-            const c3 = document.getElementById('stagingComp3')?.value.trim();
-            const competitors = [c1, c2, c3].filter(Boolean);
+            const { competitors_list } = collectCompetitorEditorData();
 
-            if (competitors.length === 0) {
+            if (!competitors_list.some(Boolean)) {
                 alert("Please enter at least 1 competitor name to rerun the AI audit.");
                 return;
             }
@@ -2330,7 +2431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`${API_BASE}/api/admin/proposals/${currentStagingHash}/rerun-competitors`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ competitors })
+                body: JSON.stringify({ competitors: competitors_list })
             })
                 .then(res => {
                     if (!res.ok) throw new Error("Competitor AI rerun operational failure.");
@@ -2345,7 +2446,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const benchInput = document.getElementById('stagingBenchmarkInput');
                     if (benchInput) benchInput.value = data.competitor_benchmarks || "";
 
-                    appendCopilotMessage("model", `Competitor Audit Rerun Complete!\nUpdated market benchmark analysis for direct targets: ${competitors.join(', ')}.`);
+                    renderCompetitorEditorTabs(currentStagingAudit);
+
+                    const activeComps = (data.competitors_list || []).filter(Boolean);
+                    appendCopilotMessage("model", `Competitor Audit Rerun Complete!\nUpdated market benchmark analysis for direct targets: ${activeComps.join(', ')}.`);
                     if (stagingStatusMessage) {
                         stagingStatusMessage.textContent = "Competitor AI audit re-analyzed cleanly!";
                         stagingStatusMessage.className = "text-xs font-bold text-purple-500";

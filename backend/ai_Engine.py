@@ -10,10 +10,14 @@ logger = logging.getLogger("visionpitch.ai_engine")
 class Competitor(BaseModel):
     name: str = Field(description="Name of the competitor company")
     platform_leveraged: str = Field(
-        description="Digital channel they are using effectively (e.g. active funnels, website, SEO engine, social automation)"
+        description="Digital channel / strategy they are using effectively (What they do right)"
     )
     revenue_advantage: str = Field(
-        description="How this platform setup drives their revenue or saves them operational time"
+        description="How this strategy drives their revenue or benefits them"
+    )
+    client_deficit: str = Field(
+        default="Currently unoptimized against this competitor's search & lead conversion footprint.",
+        description="What the client lacks and can benefit from adopting"
     )
 
 class ServiceModule(BaseModel):
@@ -316,32 +320,70 @@ def rerun_competitor_analysis(
     company_name: str,
     industry: str,
     url: Optional[str],
-    new_competitors: List[str]
+    new_competitors: List[str],
+    existing_competitors: Optional[List[str]] = None
 ) -> Dict[str, Any]:
-    """Re-runs targeted competitor analysis and benchmark synthesis using a new list of competitors."""
-    provided_comps = [c.strip() for c in new_competitors if c and c.strip()]
-    if not provided_comps:
-        provided_comps = ["Competitor Alpha", "Competitor Beta", "Competitor Gamma"]
+    """Re-runs targeted competitor analysis and benchmark synthesis, preserving existing competitors when partial input is provided."""
+    existing_clean = [c.strip() for c in (existing_competitors or []) if c and isinstance(c, str) and c.strip()]
 
-    comp_str = ", ".join(provided_comps)
+    target_comps = []
+    # Fill target_comps positionally up to 3 slots
+    for i in range(3):
+        n_val = new_competitors[i].strip() if (new_competitors and i < len(new_competitors) and isinstance(new_competitors[i], str) and new_competitors[i].strip()) else ""
+        if n_val:
+            target_comps.append(n_val)
+        else:
+            cand = None
+            if i < len(existing_clean) and existing_clean[i] not in target_comps:
+                cand = existing_clean[i]
+            else:
+                for e in existing_clean:
+                    if e not in target_comps:
+                        cand = e
+                        break
+            if cand:
+                target_comps.append(cand)
+
+    # Ensure target_comps has 3 elements using fallbacks if needed
+    default_fallbacks = ["Competitor Alpha", "Competitor Beta", "Competitor Gamma"]
+    for fb in default_fallbacks:
+        if len(target_comps) >= 3:
+            break
+        if fb not in target_comps:
+            target_comps.append(fb)
+
+    target_comps = target_comps[:3]
+    comp_str = ", ".join(target_comps)
+
     prompt = f"""You are the Senior Digital Strategist at Apex Digital SA.
 
-Re-run the competitor intelligence audit for the prospective client using the newly specified direct competitors:
+Re-run the competitor intelligence audit for the prospective client using the direct target competitors:
 - Client Company: {company_name}
 - Industry: {industry}
 - Client Website: {url if url else 'Not Provided'}
-- Target Competitors Specified by Sales Rep: {comp_str}
+- Target Competitors (Exactly 3):
+  1. {target_comps[0]}
+  2. {target_comps[1]}
+  3. {target_comps[2]}
 
 Tasks:
-1. Provide a clear evaluation of exactly 3 competitors leveraging online channels effectively. You MUST use the sales rep specified competitors ({comp_str}) as the exact `name` field for each corresponding entry in `competitor_analysis`. For each competitor, specify their name, the digital platform they leverage, and their revenue advantage.
-2. Provide an updated market benchmark summary comparing the client directly against these competitors ({comp_str}).
+1. Provide a clear evaluation of each of these 3 competitors ({comp_str}) leveraging online channels effectively. You MUST use the exact competitor name for each corresponding entry in `competitor_analysis`:
+   - Entry 1 `name`: "{target_comps[0]}"
+   - Entry 2 `name`: "{target_comps[1]}"
+   - Entry 3 `name`: "{target_comps[2]}"
+   For each competitor, specify:
+   - `name`: exact competitor name
+   - `platform_leveraged`: what they do right (core digital platform & strategy)
+   - `revenue_advantage`: how it benefits them (revenue & authority gain)
+   - `client_deficit`: what the client can benefit from adopting (client deficit & solution)
+2. Provide an updated market benchmark summary comparing the client directly against these 3 competitors ({comp_str}).
 
 Output JSON format matching this schema:
 {{
   "competitor_analysis": [
-    {{"name": "{provided_comps[0]}", "platform_leveraged": "...", "revenue_advantage": "..."}},
-    {{"name": "{provided_comps[1] if len(provided_comps) > 1 else 'Competitor 2'}", "platform_leveraged": "...", "revenue_advantage": "..."}},
-    {{"name": "{provided_comps[2] if len(provided_comps) > 2 else 'Competitor 3'}", "platform_leveraged": "...", "revenue_advantage": "..."}}
+    {{"name": "{target_comps[0]}", "platform_leveraged": "...", "revenue_advantage": "...", "client_deficit": "..."}},
+    {{"name": "{target_comps[1]}", "platform_leveraged": "...", "revenue_advantage": "...", "client_deficit": "..."}},
+    {{"name": "{target_comps[2]}", "platform_leveraged": "...", "revenue_advantage": "...", "client_deficit": "..."}}
   ],
   "competitor_benchmarks": "Updated summary benchmarking client metrics directly against {comp_str}..."
 }}
@@ -355,29 +397,27 @@ Output JSON format matching this schema:
             config={'response_mime_type': 'application/json'}
         )
         parsed = json.loads(response.text)
-        tagged = tag_competitors(parsed, provided_comps)
-        return {
-            "competitor_analysis": tagged.get("competitor_analysis", []),
-            "competitor_benchmarks": tagged.get("competitor_benchmarks", "")
-        }
+        tagged = tag_competitors(parsed, target_comps)
+        tagged["competitors_list"] = target_comps
+        return tagged
     except Exception as e:
         logger.warning("Gemini API competitor rerun failed (%s). Using fallback calculation.", e)
         fallback_comps = []
-        for name in provided_comps[:3]:
+        for name in target_comps[:3]:
             fallback_comps.append({
                 "name": name,
                 "platform_leveraged": "Digital Funnels & SEO",
-                "revenue_advantage": f"Establishes market authority and captures organic search leads in {industry}."
+                "revenue_advantage": f"Establishes market authority and captures organic search leads in {industry}.",
+                "client_deficit": f"Currently unoptimized against this competitor's search & lead conversion footprint. Adopting custom funnels & SEO hubs will capture inbound market share in {industry}."
             })
         fallback_data = {
             "competitor_analysis": fallback_comps,
-            "competitor_benchmarks": f"Industry average performance remains at 70-75%. Benchmarked directly against {comp_str}."
+            "competitor_benchmarks": f"Industry average performance remains at 70-75%. Benchmarked directly against {comp_str}.",
+            "competitors_list": target_comps
         }
-        tagged_fallback = tag_competitors(fallback_data, provided_comps)
-        return {
-            "competitor_analysis": tagged_fallback.get("competitor_analysis", []),
-            "competitor_benchmarks": tagged_fallback.get("competitor_benchmarks", "")
-        }
+        tagged_fallback = tag_competitors(fallback_data, target_comps)
+        tagged_fallback["competitors_list"] = target_comps
+        return tagged_fallback
 
 def query_audit_copilot(
     audit_context: Dict[str, Any],

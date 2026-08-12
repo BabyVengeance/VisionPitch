@@ -349,6 +349,10 @@ async def update_proposal_audit(proposal_hash: str, payload: AuditUpdatePayload)
             audit_data["rep_notes"] = payload.rep_notes
         if payload.competitors_list is not None:
             audit_data["competitors_list"] = payload.competitors_list
+            if isinstance(audit_data.get("competitor_analysis"), list):
+                for idx, comp_name in enumerate(payload.competitors_list):
+                    if comp_name and idx < len(audit_data["competitor_analysis"]):
+                        audit_data["competitor_analysis"][idx]["name"] = comp_name
 
         updated_json = json.dumps(audit_data)
         cursor.execute("UPDATE proposals SET audit_raw_json = %s WHERE proposal_hash = %s", (updated_json, proposal_hash))
@@ -391,6 +395,10 @@ async def transpose_proposal_audit(proposal_hash: str, payload: AuditTransposePa
             audit_data["rep_notes"] = payload.rep_notes
         if payload.competitors_list is not None:
             audit_data["competitors_list"] = payload.competitors_list
+            if isinstance(audit_data.get("competitor_analysis"), list):
+                for idx, comp_name in enumerate(payload.competitors_list):
+                    if comp_name and idx < len(audit_data["competitor_analysis"]):
+                        audit_data["competitor_analysis"][idx]["name"] = comp_name
 
         audit_data["last_transposed_at"] = secrets.token_hex(4)
 
@@ -445,17 +453,24 @@ async def rerun_audit_competitors(proposal_hash: str, payload: CompetitorRerunPa
         record = dict(row)
         audit_data = json.loads(record["audit_raw_json"])
 
+        # Extract existing competitors to preserve if fewer than 3 provided
+        existing_comps = audit_data.get("competitor_analysis", [])
+        existing_names = [c.get("name") for c in existing_comps if isinstance(c, dict) and c.get("name")]
+        if not existing_names and isinstance(audit_data.get("competitors_list"), list):
+            existing_names = [str(c) for c in audit_data.get("competitors_list") if c]
+
         new_comp_data = rerun_competitor_analysis(
             client_name=record["client_name"],
             company_name=record["company_name"],
             industry=record["industry"],
             url=record.get("website_url"),
-            new_competitors=payload.competitors
+            new_competitors=payload.competitors,
+            existing_competitors=existing_names
         )
 
         audit_data["competitor_analysis"] = new_comp_data["competitor_analysis"]
         audit_data["competitor_benchmarks"] = new_comp_data["competitor_benchmarks"]
-        audit_data["competitors_list"] = payload.competitors
+        audit_data["competitors_list"] = new_comp_data.get("competitors_list", [c["name"] for c in new_comp_data["competitor_analysis"]])
 
         updated_json = json.dumps(audit_data)
         cursor.execute("UPDATE proposals SET audit_raw_json = %s WHERE proposal_hash = %s", (updated_json, proposal_hash))

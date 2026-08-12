@@ -124,6 +124,25 @@ def test_tag_competitors_enforces_sales_rep_names_over_generic():
     assert "sales_comp.co.za" in tagged["competitor_benchmarks"]
 
 
+def test_rerun_competitor_analysis_preserves_existing_competitors():
+    from ai_Engine import rerun_competitor_analysis
+    existing_comps = ["Competitor Alpha", "Competitor Beta", "Competitor Gamma"]
+    res = rerun_competitor_analysis(
+        client_name="Test Client",
+        company_name="Test Company",
+        industry="Marketing",
+        url="http://test.com",
+        new_competitors=["Seed Mediaa"],
+        existing_competitors=existing_comps
+    )
+    comp_list = res.get("competitor_analysis", [])
+    names = [c["name"] for c in comp_list]
+    assert len(names) == 3
+    assert names[0] == "Seed Mediaa"
+    assert "Competitor Beta" in names
+    assert "Competitor Gamma" in names
+
+
 
 def test_generate_proposal_without_budget_succeeds():
     payload = {

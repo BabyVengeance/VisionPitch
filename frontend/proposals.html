@@ -7,6 +7,10 @@
     <title>Interactive Proposal | Apex VisionPitch</title>
     <link rel="icon" type="image/png" href="Assets/Black logo.png">
 
+    <!-- Production Typography & Sovereign Design System -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -14,7 +18,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
@@ -28,9 +33,13 @@
         }
     </script>
     <style>
-        .theme-transition,
-        .theme-transition * {
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease, box-shadow 0.2s ease !important;
+        body, nav, section, div, button, input, select, table {
+            transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, box-shadow 0.15s ease-out;
+        }
+
+        .num-tabular {
+            font-variant-numeric: tabular-nums;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .custom-scrollbar::-webkit-scrollbar {
